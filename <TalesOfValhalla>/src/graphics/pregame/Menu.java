@@ -8,12 +8,16 @@ import graphics.game.Game;//to be able to launch a game.
 
 import java.util.Arrays;//for utility to print fonts when needed.
 
+import java.awt.*;
+
 public class Menu extends GraphicsHandler{
-	
-	private int cols, rows, scl;
+
+	static final private String ICON_PATH = "imagedata/tokens/avatars/archerToken.png";//TODO: change the icon
+	private int cols, rows, scl, platformWidth = 1920, platformHeight = 1080, windowWidth = 1600, windowHeight = 900, desktopXOffset = 160, desktopYOffset = 90, desktopMouseX = 0, desktopMouseY = 0;
 	private float focalLength = 1, flying = 0;
 	private float[] coords = new float[3], rotCoords; // 3d coordinates
 	private float[][] terrain;//height of each point
+	private boolean moveScreen = false;
 
 	/**
 	 * Default constructor for PApplet
@@ -26,6 +30,7 @@ public class Menu extends GraphicsHandler{
 	 * Creates the display
 	 */
 	public void setup(){
+		setDisplayEnvironment();
 		//System.out.println(Arrays.toString(PFont.list()));
 		rotate(PI);
 		int height = 2000;
@@ -36,8 +41,42 @@ public class Menu extends GraphicsHandler{
 		terrain = new float[cols][rows];
 	}
 
+	/**
+	 * Sets the display environment.
+	 */
 	public void settings(){
-		size(1600, 900);//size of screen
+		fullScreen();//fullScreen mode
+		//size(1600, 900);//size of screen 
+	}
+
+	private void setDisplayEnvironment(){
+		surface.setResizable(true);
+		surface.setSize(windowWidth, windowHeight);//don't make the the window take up the whole screen
+		surface.setLocation(desktopXOffset, desktopYOffset);
+		PImage icon = loadImage(ICON_PATH);//create icon
+		surface.setIcon(icon);//change the icon 
+	}
+
+	/**
+	 * Moves the window.
+	 */
+	private void moveWindow(){
+		int dx = mouseX - desktopMouseX + desktopXOffset;//how much has the mouse moved by in the x direction?
+		int dy = mouseY - desktopMouseY + desktopYOffset;//how much has the mouse moved by in the y direction?
+		int dxsmall = 0, dysmall =0 ;
+		while (dxsmall <= Math.abs(dx) || dysmall <= Math.abs(dy) ){//smoothing
+			surface.setLocation(desktopXOffset, desktopYOffset);
+			if(dxsmall < Math.abs(dx)){
+				desktopXOffset += (dx > 0 ? 1 : -1);
+			}
+			if(dysmall < Math.abs(dy)){
+				desktopYOffset += (dy > 0 ? 1 : -1);
+			}
+			dxsmall++;//this caused several crashes. DO NOT REMOVE!
+			dysmall++;
+		}	
+		desktopMouseX += dx;
+		desktopMouseY += dy;	
 	}
 
 	/**
@@ -45,10 +84,24 @@ public class Menu extends GraphicsHandler{
 	 */
 	public void mousePressed() {
 		if(mouseX < super.width/2 + 150 && mouseX > super.width/2 - 150 && mouseY > 2*super.height/3 - 42 && mouseY < 2*super.height/3 + 42){
+			GraphicsHandler.setUpGame();
+			PApplet.main("graphics.game.Game");
 			PApplet.main("graphics.game.Game");
 			surface.setVisible(false);
 			noLoop();
+		}else if(mouseY < 100){
+			moveScreen = true;
+			desktopMouseX = mouseX + desktopXOffset;
+			desktopMouseY = mouseY + desktopYOffset;
 		}
+	}
+
+	/**
+	 * Performs action on mouse release
+	 */
+	public void mouseReleased(){
+		moveScreen = false;
+		System.out.println(moveScreen);
 	}
 
 	/**
@@ -109,7 +162,7 @@ public class Menu extends GraphicsHandler{
 			endShape();
 		}
 		
-		if(mouseX < super.width/2 + 150 && mouseX > super.width/2 - 150 && mouseY > 2*super.height/3 - 42 && mouseY < 2*super.height/3 + 42)fill(0, 0, 0);
+		if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 - 42 && mouseY < 2*windowHeight/3 + 42)fill(0, 0, 0);
 		else fill(255,255,255);
 		//TODO: Instert cool title here.
 		PFont font = createFont("Ani", 200);
@@ -128,6 +181,7 @@ public class Menu extends GraphicsHandler{
 	 * Driver method runs as an infinite loop.
 	 */
 	public void draw(){
+		if(moveScreen) moveWindow();//TODO Make window moveable
 		mainMenu();
 	}
 

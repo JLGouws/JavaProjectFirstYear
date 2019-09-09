@@ -1,23 +1,26 @@
 package deck;
 
-import cards.avatars.*;
-import card.Card;
+import cards.avatars.*;//
+
+import card.Card;//the deck has cards
+
+import player.Player;
 
 public class Deck{
 
-	private Card[] cards = new Card[25];//the cards that can be played.
+	private Card[] cards = new Card[30];//the cards that can be played.
 	private int curIndex = 0; 
 
 	/**
-	 * Constructer, initialises the cards
+	 * Constructor, initialises the cards
 	 */
-	public Deck(){
-		for (int i = 0; i < 25; i++) {
-			if(i < 5) cards[i] = new Archer();
-			else if(i >= 5 && i < 10) cards[i] = new Boar();
-			else if(i >= 10 && i < 15) cards[i] = new Golem();
-			else if(i >= 15 && i < 20) cards[i] = new Mage();
-			else if( i >= 20 && i < 25) cards[i] = new Minion();	
+	public Deck(Player player){
+		for (int i = 0; i < 30; i++) {
+			if(i < 6) cards[i] = new Archer(player);
+			else if(i >= 6 && i < 12) cards[i] = new Boar(player);
+			else if(i >= 12 && i < 18) cards[i] = new Golem(player);
+			else if(i >= 18 && i < 24) cards[i] = new Mage(player);
+			else if( i >= 24 && i < 30) cards[i] = new Minion(player);	
 		}
 		this.randomShuffle();
 	}

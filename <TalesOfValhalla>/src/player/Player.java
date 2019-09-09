@@ -10,7 +10,7 @@ public class Player {
 	* Constructor, initializes player
 	*/
 	public Player(){
-		deck = new Deck();
+		deck = new Deck(this);
 		hand = new Hand(deck);
 	}
 	

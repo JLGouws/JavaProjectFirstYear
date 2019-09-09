@@ -14,7 +14,7 @@ compileAvatars:
 	$(JC) $(BIN) -cp bin $(CDS)/Avatar.java $(AVTS)/*.java
 
 compileCard:
-	$(JC) $(BIN) src/card/Card.java
+	$(JC) $(BIN) -cp bin src/card/Card.java
 
 compileMain:
 	$(JC) $(BIN) -cp bin:$(GRL) src/main/Backbone.java
@@ -39,3 +39,15 @@ compileBoard:
 
 compileGraphics:
 	$(JC) $(BIN) -cp $(GRL):bin src/graphics/GraphicsHandler.java src/graphics/pregame/Menu.java src/graphics/game/Game.java
+
+compileAll:#compiles all files
+	make compileCard
+	make compileAvatars
+	make compileMain
+	make compilePregame
+	make compileGame
+	make compileGH
+	make compileDeck
+	make compilePlayer
+	make compileBoard
+	make compileGraphics

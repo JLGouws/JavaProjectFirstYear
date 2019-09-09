@@ -16,22 +16,33 @@ import graphics.GraphicsHandler;//because processing is a bit stupid
 
 public class Game extends GraphicsHandler {
 
-	static final private double CARD_SPREAD_EXP = 1.5, CARD_ROTATION_EXP = 1.5;
+	static final private double CARD_SPREAD_EXP = 1.2, CARD_ROTATION_EXP = 1.5;
+	static final private float TOKEN_FILL = (float) 0.9;
+	static final private int PLAYER0COLOUR = 0xFF2F74F4, PLAYER1COLOUR = 0xFFFF2800, BOARD_LIGHT = 0xFFFFE066, BOARD_DARK = 0xFF223300;
+	public int index;
 	private Menu menu;
-	private int height, width, xTokenSelected, yTokenSelected, cardWidth, cardHeight;//environment variables
+	private int height, width, xTokenSelected, yTokenSelected,cardWidth, cardHeight;//environment variables
 	private Player playerOne, playerTwo;
 	private ArrayList<PImage> playerOneCards = new ArrayList<>(), playerTwoCards = new ArrayList<>();
-	private float cardXpos, cardRot, downShift = 20, selectedCardXoffset, selectedCardYoffset;
+	private float cardXpos, cardRot, downShift = 20, selectedCardXoffset, selectedCardYoffset, nexusRot = 0, nexusRotSpeed = (float) 0.1;
 	private PImage curCardImage;
 	private Card curCard;
-	private boolean cardSelected = false, updateBoard = false, tokenSelected = false;
-	private Board board = new Board();
+	private boolean cardSelected = false, tokenSelected = false;
 	private cards.Avatar selectedAvatar;
 
 	/**
 	 * Construtor for PApplet
 	 */
 	public Game(){
+		if(running.size() == 1){
+			playerOne = players[0];
+			playerTwo = players[1];
+			index = 0;
+		} else if(running.size() == 2){
+			index = 1;
+			playerOne = players[1];
+			playerTwo = players[0];
+		}
 		running.add(this);
 		menu = (Menu) running.get(0);//menu must be the first thing initialized.
 	}
@@ -40,14 +51,15 @@ public class Game extends GraphicsHandler {
 	 * Void settings sets up the processing environment.
 	 */
 	public void settings(){
-		size(1920,1080);
-		fullScreen();
+		int screen = playerOne == players[1] ? 1 : 2;
+		fullScreen(screen);
 	}
 
 	/**
 	 *Setup method runs before draw method to set variables in the class.
 	 */
 	public void setup(){
+		System.out.println(hex(color(255, 224, 102)));
 		//set up environment variables
 		height = super.height;
 		width = super.width;
@@ -55,11 +67,11 @@ public class Game extends GraphicsHandler {
 		cardWidth = width/12;
 		//create background
 		translate(0,downShift);//shift screen down
-		background(0);
-		playerOne = new Player();
+		background(255,255,255);
+		//playerOne = new Player();
 		playerOne.getHand().getCards().forEach(card -> playerOneCards.add(loadImage(card.URI)));//playerOneCards.add(loadImage(card.URI))
 		drawBoard();
-		drawNexuses();
+		//drawNexuses();
 		//drawHand();
 		capture();
 	}
@@ -68,30 +80,17 @@ public class Game extends GraphicsHandler {
 	 * Method that is called when the mouse button is pressed.
 	 */
 	public void mousePressed() {
-		int length = playerOneCards.size();
-		float cardOffset = width/4*((float) -Math.pow(CARD_SPREAD_EXP, 1 -length) + 1) + cardWidth/2;
-		if(mouseX < 1920 && mouseX > 1820 && mouseY > 0 && mouseY < 100){//menu clicked
-			menu.revive();//revive the menu
-			surface.setVisible(false);//make the display go away
-			noLoop();//stop draw
-		} else if((length != 0 && mouseY > height - cardHeight/2 && Math.abs(mouseX - width/2) < cardOffset && !cardSelected)){//was a card clicked
-			float cardPos = length*(mouseX - width/2 + cardOffset)/(2*cardOffset);//quick maths
-			int index = (int) cardPos;//work out the index
-			float cardRot = - PI/15*((float) -Math.pow(CARD_ROTATION_EXP, 1 - length) + 1) * ( 1 - 2 * index / length);
-			selectedCardXoffset = (cardPos % 1) * 2 * cardOffset / length;
-			selectedCardYoffset = mouseY - (height - cardHeight/2) - sin(Math.abs(cardRot)); 
-			curCardImage = playerOneCards.get(index);
-			curCard = playerOne.getHand().getCard(index);
-			playerOneCards.remove(index);
-			playerOne.getHand().removeCard(index);
-			cardSelected = true;
-		} else if(isOnBoard() && !cardSelected){
-			this.xTokenSelected = (int) mouseX/(cardWidth) - 1;
-			this.yTokenSelected = (int) (mouseY - downShift)/(cardHeight/2);
-			Card selectedToken = board.getBoard()[xTokenSelected][yTokenSelected];
-			if(selectedToken instanceof cards.Avatar){//is this an Avatar
-				selectedAvatar = (cards.Avatar) selectedToken;//convert the card to an avatar.
-				tokenSelected = true;
+		if (turnIndex == index){//is it this player's turn?
+			int length = playerOneCards.size();
+			float cardOffset = width/4*((float) -Math.pow(CARD_SPREAD_EXP, 1 -length) + 1) + cardWidth/2;
+			if(mouseX < width && mouseX > width - width/20 && mouseY > 0 && mouseY < width/20){//menu clicked
+				transitionToMenu();
+			} else if(mouseX < width && mouseX > width - width/20 && mouseY > width/20 && mouseY < 2*width/20){
+				turnIndex = (turnIndex + 1) % 2;//switch turn index
+			}else if((length != 0 && mouseY > height - cardHeight/2 && Math.abs(mouseX - width/2) < cardOffset && !cardSelected)){//was a card clicked
+				selectCard(length, cardOffset);
+			} else if(isOnBoard() && !cardSelected){
+				handleTokenSelection();
 			}
 		}
 	}
@@ -109,21 +108,64 @@ public class Game extends GraphicsHandler {
 	 * Method that is called when the mouse button is released.
 	 */
 	public void mouseReleased(){
-		if(!isOnBoard()){//cardSelected && mouseY > height - cardHeight/2 && mouseX > width/4 && mouseX < 3*width/4){//was a card released back to the cards
-			replaceCard();//the card must be replaced
-		}else if (cardSelected && isOnBoard()){
-			int x = (int) mouseX/(cardWidth) - 1;
-			int y = (int) (mouseY - downShift)/(cardHeight/2);
-			if(curCard instanceof cards.Avatar && x != 0){
-				replaceCard();
-				return;
+		if(turnIndex == index){
+			if(!isOnBoard()){//cardSelected && mouseY > height - cardHeight/2 && mouseX > width/4 && mouseX < 3*width/4){//was a card released back to the cards
+				replaceCard();//the card must be replaced
+			}else if (cardSelected && isOnBoard()){
+				int x = (int) (mouseX - selectedCardXoffset)/(cardWidth) - 1;
+				int y = (int) (mouseY - selectedCardYoffset - downShift)/(cardHeight/2);
+				if(curCard instanceof cards.Avatar && x != 0 && playerOne == players[0]){
+					replaceCard();
+					return;
+				}else if(curCard instanceof cards.Avatar && x != 9 && playerOne == players[1]){
+					replaceCard();
+					return;
+				}
+				board.addCard(curCard, x, y);
+				cardSelected = false;
+				updateBoard[0] = true;
+				updateBoard[1] = true;
 			}
-			board.addCard(curCard, x, y);
-			cardSelected = false;
-			updateBoard = true;
 		}
 	}
 
+	/**
+	 * Makes the game move to the menu.
+	 */
+	private void transitionToMenu(){
+		menu.revive();//revive the menu
+		surface.setVisible(false);//make the display go away
+		noLoop();//stop draw
+	}
+
+	/**
+	 * Selects card from the players hand.
+	 */
+	private void selectCard(int length, float cardOffset){
+		float cardPos = length*(mouseX - width/2 + cardOffset)/(2*cardOffset);//quick maths
+		int index = (int) cardPos;//work out the index
+		float cardRot = - PI/15*((float) -Math.pow(CARD_ROTATION_EXP, 1 - length) + 1) * ( 1 - 2 * index / length);
+		selectedCardXoffset = (cardPos % 1) * 2 * cardOffset / length;
+		selectedCardYoffset = mouseY - (height - cardHeight/2) - sin(Math.abs(cardRot)); 
+		curCardImage = playerOneCards.get(index);
+		curCard = playerOne.getHand().getCard(index);
+		playerOneCards.remove(index);
+		playerOne.getHand().removeCard(index);
+		cardSelected = true;
+	}
+
+	/**
+	 * Handles the selection of a token
+	 */
+	private void handleTokenSelection(){
+		this.xTokenSelected = (int) mouseX/(cardWidth) - 1;
+		this.yTokenSelected = (int) (mouseY - downShift)/(cardHeight/2);
+		Card selectedToken = board.getBoard()[xTokenSelected][yTokenSelected];
+		if(selectedToken instanceof cards.Avatar){//is this an Avatar
+			selectedAvatar = (cards.Avatar) selectedToken;//convert the card to an avatar.
+			tokenSelected = true;
+		}
+	}
 	/**
 	 * Method that returns the selected card to the hand.
 	 */
@@ -131,29 +173,24 @@ public class Game extends GraphicsHandler {
 		int length = playerOneCards.size();
 		float cardOffset = width/4*((float) -Math.pow(CARD_SPREAD_EXP, 1 -length) + 1) + cardWidth/2;
 		int index = (int) (length*((mouseX - width/2 + cardOffset)/(2*cardOffset)));//quick maths
-		playerOneCards.add(index, curCardImage);
-		playerOne.getHand().addCard(curCard, index);	
-		cardSelected = false;
-		drawHand();//redraw hand as it has changed
-	}
-
-
-	/**
-	 * Creates the playing board.
-	 */
-	private void drawBoard(){
-		Card[][] curBoard = board.getBoard();//store the current board so that the board doesn't have to be fetched again.
-		for(int i = 1; i < 11; i++){
-			for ( int j = 0 ; j < 7 ; j++ ) {
-				if( (i % 2 == 0) != (j % 2 == 0)) fill(34, 51, 0); //alternating colours
-				else fill(255, 224, 102);
-				rect(i*cardWidth, j*cardHeight/2 , cardWidth, cardHeight/2);
-				if(curBoard[i - 1][j] != null) {
-					image(loadImage(curBoard[i - 1][j].TOKEN),i*cardWidth, j*cardHeight/2 , cardWidth, cardHeight/2);
-				}
-			}
+		if(index < length && index >= 0){
+			playerOneCards.add(index, curCardImage);
+			playerOne.getHand().addCard(curCard, index);	
+			cardSelected = false;
+			drawHand();//redraw hand as it has changed
+		} else if(index >= length){
+			playerOneCards.add(curCardImage);
+			playerOne.getHand().addCard(curCard);	
+			cardSelected = false;
+			drawHand();//redraw hand as it has changed
+		}else if(index < 0 ){
+			playerOneCards.add(0, curCardImage);
+			playerOne.getHand().addCard(curCard, 0);	
+			cardSelected = false;
+			drawHand();//redraw hand as it has changed
 		}
 	}
+
 
 	/**
 	 *Draws the players hand.
@@ -166,7 +203,7 @@ public class Game extends GraphicsHandler {
 		float fullRot = -cardRot*2;
 		float fullXSpace =  width/2*((float) -Math.pow(CARD_SPREAD_EXP, 1 - length) + 1);
 		playerOneCards.forEach(card -> {
-			//TODO: make Cards rotate. Maybe only when there are more than three cards?
+			//TODODONE?: make Cards rotate. Maybe only when there are more than three cards?
 			translate(cardXpos, height + sin(Math.abs(cardRot))*cardWidth);
 			rotate(cardRot);//rotate card
 			image(card,-cardWidth/2, -cardHeight/2, cardWidth,cardHeight);//draw card at center of card
@@ -182,10 +219,25 @@ public class Game extends GraphicsHandler {
 	 *Draws the Nexuses of the board.
 	 */
 	private void drawNexuses(){
-		fill(0, 0, 255);
-		ellipse(cardWidth/2, ((float) 3.5) * cardHeight/2 , cardWidth, cardHeight/2);
-		fill(255, 0, 0);
-		ellipse(width - cardWidth/2, ((float) 3.5) * cardHeight/2 , cardWidth, cardHeight/2);
+		noStroke();
+		nexusRot = (nexusRot + nexusRotSpeed) % (2*PI);
+		PImage nexusImage = loadImage("imagedata/nexusImage/funkySpiral.png");
+		//draw player one nexus
+		translate(cardWidth/2, ((float) 3.5) * cardHeight/2);
+		rotate(nexusRot);
+		fill(PLAYER0COLOUR);
+		ellipse(0, 0, cardWidth, cardWidth);
+		image(nexusImage, -cardWidth/2, -cardWidth/2, cardWidth, cardWidth);
+		rotate(-nexusRot);
+		translate(-cardWidth/2, -((float) 3.5) * cardHeight/2);
+		//draw player two nexus
+		translate(width - cardWidth/2, ((float) 3.5) * cardHeight/2);
+		rotate(nexusRot);
+		fill(PLAYER1COLOUR);
+		ellipse(0, 0, cardWidth, cardWidth);
+		image(nexusImage, -cardWidth/2, -cardWidth/2, cardWidth, cardWidth);
+		rotate(-nexusRot);
+		translate(-(width - cardWidth/2), -((float) 3.5) * cardHeight/2);
 	}
 	
 	/**
@@ -221,17 +273,19 @@ public class Game extends GraphicsHandler {
 	 * Highlights the square that the mouse is in.
 	 */
 	private void highlightSquare(){
-		int x = (int) mouseX/(cardWidth) - 1;
-		int y = (int) (mouseY - downShift)/(cardHeight/2);
+		int x = (int) (mouseX - selectedCardXoffset)/(cardWidth) - 1;
+		int y = (int) (mouseY - selectedCardYoffset - downShift)/(cardHeight/2);
 		boolean shouldHighlight = false;//should the square be highlighted?
-		if (curCard instanceof cards.Avatar && x == 0){
+		if (curCard instanceof cards.Avatar && x == 0 && playerOne == players[0]){
 			shouldHighlight = true;
-		} 
+		} else if (curCard instanceof cards.Avatar && x == 9 && playerOne == players[1]){
+			shouldHighlight = true;
+		}
 		if (shouldHighlight && board.getBoard()[x][y] == null){
 			fill(255, 0, 0);
 			rect((x+1)*cardWidth, y*cardHeight/2 , cardWidth, cardHeight/2);
-			if( ((x+1) % 2 == 0) != (y % 2 == 0)) fill(34, 51, 0); //alternating colours
-			else fill(255, 224, 102);
+			if( ((x+1) % 2 == 0) != (y % 2 == 0)) fill(BOARD_DARK); //alternating colours
+			else fill(BOARD_LIGHT);
 			rect((x+1)*cardWidth + (cardWidth - width/13)/2, y*cardHeight/2 + (cardHeight/2 - height/9)/2 , width/13, height/9);
 		}
 	}
@@ -250,8 +304,8 @@ public class Game extends GraphicsHandler {
 	/**
 	 * Captures the current display
 	 */
-	private void capture(){
-		saveFrame("imagedata/frame/curFrame.png");//stores the current frame as a png
+	public void capture(){
+		saveFrame("imagedata/frame/curFrame" + index + ".png");//stores the current frame as a png
 	}
 
 	/**
@@ -259,8 +313,34 @@ public class Game extends GraphicsHandler {
 	 */
 	private void drawSelectedCard(){
 		if(isOnBoard())	highlightSquare();
-		System.out.println(selectedCardYoffset);
 		image(curCardImage, mouseX - selectedCardXoffset, mouseY - selectedCardYoffset, cardWidth, cardHeight);
+	}
+
+	/**
+	 * Creates the playing board.
+	 */
+	public void drawBoard(){
+		stroke(0);
+		Card[][] curBoard = board.getBoard();//store the current board so that the board doesn't have to be fetched again.
+		for(int i = 1; i < 11; i++){
+			for ( int j = 0 ; j < 7 ; j++ ) {
+				if( (i % 2 == 0) != (j % 2 == 0)) fill(BOARD_DARK); //alternating colours
+				else fill(BOARD_LIGHT);
+				rect(i*cardWidth, j*cardHeight/2 , cardWidth, cardHeight/2);
+				if(curBoard[i - 1][j] != null) {
+					Card tmpCard = curBoard[i - 1][j];
+					if(tmpCard.player == playerOne) {
+						if(index == 0) fill(PLAYER0COLOUR);
+						else fill(PLAYER1COLOUR);
+					}else{
+						if(index == 0) fill(PLAYER1COLOUR);
+						else fill(PLAYER0COLOUR);
+					}					
+					ellipse(((float) 0.5 + i)*cardWidth, ((float) 0.5 + j)*cardHeight/2, cardWidth,cardHeight/2);
+					image(loadImage(tmpCard.TOKEN),(i + (1 - TOKEN_FILL)/2)*cardWidth, (j + (1 - TOKEN_FILL)/2)*cardHeight/2 , TOKEN_FILL*cardWidth, TOKEN_FILL*cardHeight/2);
+				}
+			}
+		}
 	}
 		
 	/**
@@ -268,18 +348,23 @@ public class Game extends GraphicsHandler {
 	 */
 	public void draw(){
 		translate(0,20);//shift screen down
-		background(loadImage("imagedata/frame/curFrame.png"));
-		//drawNexuses();
-		fill(255, 0, 0);
-		rect(1820,0,100,100);
+		background(loadImage("imagedata/frame/curFrame" + index + ".png"));
 
-		if(updateBoard){
-			updateBoard = false;
+		//TODO: Make these more pretty
+		fill(255, 0, 0);
+		rect(width - width/20,0,width/20,width/20);
+		fill(0,255,0);
+		rect(width - width/20 ,width/20,width/20,width/20);
+
+		if(updateBoard[index]){
+			updateBoard[index] = false;
 			drawBoard();
 			capture();
 		}
+		drawNexuses();
 		if (playerOneCards.size() != 0) drawHand();
 		if (cardSelected) drawSelectedCard();
 		if (tokenSelected) drawTokenMove();
+		
 	}
 }
