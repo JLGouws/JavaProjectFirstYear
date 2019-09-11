@@ -164,6 +164,8 @@ public class Game extends GraphicsHandler {
 		if(selectedToken instanceof cards.Avatar){//is this an Avatar
 			selectedAvatar = (cards.Avatar) selectedToken;//convert the card to an avatar.
 			tokenSelected = true;
+		}else if (selectedToken == null){
+			tokenSelected = false;
 		}
 	}
 	/**
