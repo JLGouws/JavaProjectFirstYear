@@ -18,7 +18,7 @@ public class Game extends GraphicsHandler {
 
 	static final private double CARD_SPREAD_EXP = 1.2, CARD_ROTATION_EXP = 1.5;
 	static final private float TOKEN_FILL = (float) 0.9;
-	static final private int PLAYER0COLOUR = 0xFF2F74F4, PLAYER1COLOUR = 0xFFFF2800, BOARD_LIGHT = 0xFFFFE066, BOARD_DARK = 0xFF223300;
+	static final private int PLAYER0COLOUR = 0xFF2F74F4, PLAYER1COLOUR = 0xFFFF2800, BOARD_LIGHT = 0xFFFFE066, BOARD_DARK = 0xFF223300;//Don't know what the first FF is for but processing requires it
 	public int index;
 	private Menu menu;
 	private int height, width, xTokenSelected, yTokenSelected,cardWidth, cardHeight;//environment variables
@@ -59,7 +59,6 @@ public class Game extends GraphicsHandler {
 	 *Setup method runs before draw method to set variables in the class.
 	 */
 	public void setup(){
-		System.out.println(hex(color(255, 224, 102)));
 		//set up environment variables
 		height = super.height;
 		width = super.width;
@@ -80,17 +79,19 @@ public class Game extends GraphicsHandler {
 	 * Method that is called when the mouse button is pressed.
 	 */
 	public void mousePressed() {
-		if (turnIndex == index){//is it this player's turn?
+		if(mouseX < width && mouseX > width - width/20 && mouseY > 0 && mouseY < width/20){//menu clicked
+				transitionToMenu();
+		} else if (turnIndex == index){//is it this player's turn?
 			int length = playerOneCards.size();
 			float cardOffset = width/4*((float) -Math.pow(CARD_SPREAD_EXP, 1 -length) + 1) + cardWidth/2;
-			if(mouseX < width && mouseX > width - width/20 && mouseY > 0 && mouseY < width/20){//menu clicked
-				transitionToMenu();
-			} else if(mouseX < width && mouseX > width - width/20 && mouseY > width/20 && mouseY < 2*width/20){
+			if(mouseX < width && mouseX > width - width/20 && mouseY > width/20 && mouseY < 2*width/20){
 				turnIndex = (turnIndex + 1) % 2;//switch turn index
 			}else if((length != 0 && mouseY > height - cardHeight/2 && Math.abs(mouseX - width/2) < cardOffset && !cardSelected)){//was a card clicked
 				selectCard(length, cardOffset);
-			} else if(isOnBoard() && !cardSelected){
+			} else if(isOnBoard() && !tokenSelected && !cardSelected){
 				handleTokenSelection();
+			} else if(isOnBoard() && tokenSelected){
+				handleTokenMove();
 			}
 		}
 	}
@@ -121,10 +122,7 @@ public class Game extends GraphicsHandler {
 					replaceCard();
 					return;
 				}
-				board.addCard(curCard, x, y);
-				cardSelected = false;
-				updateBoard[0] = true;
-				updateBoard[1] = true;
+				handlePlayCard(x, y);
 			}
 		}
 	}
@@ -142,6 +140,7 @@ public class Game extends GraphicsHandler {
 	 * Selects card from the players hand.
 	 */
 	private void selectCard(int length, float cardOffset){
+		tokenSelected = false;
 		float cardPos = length*(mouseX - width/2 + cardOffset)/(2*cardOffset);//quick maths
 		int index = (int) cardPos;//work out the index
 		float cardRot = - PI/15*((float) -Math.pow(CARD_ROTATION_EXP, 1 - length) + 1) * ( 1 - 2 * index / length);
@@ -152,6 +151,16 @@ public class Game extends GraphicsHandler {
 		playerOneCards.remove(index);
 		playerOne.getHand().removeCard(index);
 		cardSelected = true;
+	}
+
+	/**
+	 * Plays a card
+	 */
+	private void handlePlayCard(int x, int y){
+		board.addCard(curCard, x, y);
+		cardSelected = false;
+		updateBoard[0] = true;
+		updateBoard[1] = true;
 	}
 
 	/**
@@ -168,6 +177,24 @@ public class Game extends GraphicsHandler {
 			tokenSelected = false;
 		}
 	}
+
+	/**
+	 * Handles the movement of a card on the board.
+	 */
+	private void handleTokenMove(){
+		int x = (int) mouseX/(cardWidth) - 1, y = (int) (mouseY - downShift)/(cardHeight/2), dx = Math.abs(this.xTokenSelected - x), dy = Math.abs(this.yTokenSelected - y);
+		Card selectedToken = board.getBoard()[this.xTokenSelected][this.yTokenSelected];
+		int cost = ((cards.Avatar) selectedToken).MANA_MOVE_COST * (dx + dy);
+		if(selectedToken instanceof cards.Avatar && dx + dy <= ((cards.Avatar) selectedToken).MAX_MOVE && players[index].mana - cost >=0){//is this move valid?
+			this.board.getBoard()[x][y] = selectedToken;
+			this.board.getBoard()[this.xTokenSelected][this.yTokenSelected] = null;
+			updateBoard[0] = true;
+			updateBoard[1] = true;
+			players[index].mana -= cost;
+			this.tokenSelected = false;
+		}
+	}
+
 	/**
 	 * Method that returns the selected card to the hand.
 	 */
@@ -179,17 +206,14 @@ public class Game extends GraphicsHandler {
 			playerOneCards.add(index, curCardImage);
 			playerOne.getHand().addCard(curCard, index);	
 			cardSelected = false;
-			drawHand();//redraw hand as it has changed
 		} else if(index >= length){
 			playerOneCards.add(curCardImage);
 			playerOne.getHand().addCard(curCard);	
 			cardSelected = false;
-			drawHand();//redraw hand as it has changed
 		}else if(index < 0 ){
 			playerOneCards.add(0, curCardImage);
 			playerOne.getHand().addCard(curCard, 0);	
 			cardSelected = false;
-			drawHand();//redraw hand as it has changed
 		}
 	}
 
@@ -298,9 +322,23 @@ public class Game extends GraphicsHandler {
 	private void drawTokenMove(){
 		fill(128, 128, 128);
 		for (int i = 1; i <= selectedAvatar.MAX_MOVE; i++ ) {
-			//TODO: maybe fix size
-			ellipse((this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, this.yTokenSelected * cardHeight/2 + height/18 + 30 , cardWidth/2, cardWidth/2);
+			if(this.yTokenSelected + i <= 7)ellipse((this.xTokenSelected + 1) * cardWidth + cardWidth/2, (this.yTokenSelected + i) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);//should this be drawn?
+			if(this.yTokenSelected - i >= 0)ellipse((this.xTokenSelected + 1) * cardWidth + cardWidth/2, (this.yTokenSelected - i) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);
 		}
+		for (int i = 1; i <= selectedAvatar.MAX_MOVE; i++ ) {
+			//TODO: maybe fix size
+			if (this.xTokenSelected + i < 10 )ellipse((this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, (this.yTokenSelected) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);//should this be drawn?
+			if (this.xTokenSelected - i >= 0 )ellipse((this.xTokenSelected + 1 - i) * cardWidth + cardWidth/2, (this.yTokenSelected) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);
+			for (int j = 1; j <= selectedAvatar.MAX_MOVE - i; j++ ) {
+				if (this.xTokenSelected + i < 10 ){
+					if(this.yTokenSelected + j <= 7)ellipse((this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, (this.yTokenSelected + j) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);//should this be drawn?
+					if(this.yTokenSelected - j >= 0)ellipse((this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, (this.yTokenSelected - j) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);
+				}if (this.xTokenSelected - i >= 0 ){
+					if(this.yTokenSelected + j <= 7)ellipse((this.xTokenSelected + 1 - i) * cardWidth + cardWidth/2, (this.yTokenSelected + j) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);
+					if(this.yTokenSelected + j >= 0)ellipse((this.xTokenSelected + 1 - i) * cardWidth + cardWidth/2, (this.yTokenSelected - j) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);
+				}
+			}
+		}	
 	}
 
 	/**
@@ -344,7 +382,36 @@ public class Game extends GraphicsHandler {
 			}
 		}
 	}
+
+	/**
+	 * Draws the mana and the health that the players have
+	 */
+	private void drawVitals(){
+		fill(0, 255, 0);
+		rect(cardWidth/16, (float)2.1*cardHeight, 7*cardWidth/8, cardHeight/8);
+		rect(super.width - (15*cardWidth/16), (float)2.1*cardHeight, 7*cardWidth/8, cardHeight/8);
+		fill(0x88001399);
+		rect(cardWidth/16, (float) 2.35*cardHeight, 7*cardWidth/8, cardHeight/8);
+		rect(super.width - (15*cardWidth/16), (float) 2.35*cardHeight, 7*cardWidth/8, cardHeight/8);
 		
+		fill(0, 255, 0);
+		rect(cardWidth/16, (float)2.1*cardHeight, 7*cardWidth/8 * players[0].health/players[0].max_health, cardHeight/8);
+		rect(super.width - (15*cardWidth/16), (float)2.1*cardHeight, 7*cardWidth/8 * players[1].health/players[1].max_health, cardHeight/8);
+		fill(0xFF001399);
+		rect(cardWidth/16, (float) 2.35*cardHeight, 7*cardWidth/8 * players[0].mana/players[0].max_mana, cardHeight/8);
+		rect(super.width - (15*cardWidth/16), (float) 2.35*cardHeight, 7*cardWidth/8 * players[1].mana/players[1].max_mana, cardHeight/8);
+	
+		PFont font = createFont("Ani", cardHeight/8);
+		fill(0xFFFFFFFF);
+		textFont(font);
+		textAlign(CENTER, TOP);
+		text("" + players[0].health + "/" + players[0].max_health, cardWidth/2, (float)2.05*cardHeight);
+		text("" + players[1].health + "/" + players[1].max_health, super.width - cardWidth/2, (float)2.05*cardHeight);
+
+		text("" + players[0].mana + "/" + players[0].max_mana, cardWidth/2, (float)2.3*cardHeight);
+		text("" + players[1].mana + "/" + players[1].max_mana, super.width - cardWidth/2, (float)2.3*cardHeight);
+	}	
+
 	/**
 	 * A void method of processing, a game loop that repeats.
 	 */
@@ -352,7 +419,7 @@ public class Game extends GraphicsHandler {
 		translate(0,20);//shift screen down
 		background(loadImage("imagedata/frame/curFrame" + index + ".png"));
 
-		//TODO: Make these more pretty
+		//TODO: Make these prettier
 		fill(255, 0, 0);
 		rect(width - width/20,0,width/20,width/20);
 		fill(0,255,0);
@@ -364,9 +431,9 @@ public class Game extends GraphicsHandler {
 			capture();
 		}
 		drawNexuses();
+		drawVitals();
 		if (playerOneCards.size() != 0) drawHand();
 		if (cardSelected) drawSelectedCard();
-		if (tokenSelected) drawTokenMove();
-		
+		if (tokenSelected) drawTokenMove();		
 	}
 }

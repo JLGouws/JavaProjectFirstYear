@@ -10,6 +10,9 @@ ALLLIB = bin:lib/core.jar
 run: 
 	$(JVM) -cp $(ALLLIB) main.Backbone
 
+runDeck: 
+	$(JVM) -cp bin deck.TestDeck
+
 compileAvatars: 
 	$(JC) $(BIN) -cp bin $(CDS)/Avatar.java $(AVTS)/*.java
 

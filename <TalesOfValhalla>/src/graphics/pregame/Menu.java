@@ -10,11 +10,12 @@ import java.util.Arrays;//for utility to print fonts when needed.
 
 import java.awt.*;
 
+
 public class Menu extends GraphicsHandler{
 
 	static final private String ICON_PATH = "imagedata/tokens/avatars/archerToken.png";//TODO: change the icon
-	private int cols, rows, scl, platformWidth = 1920, platformHeight = 1080, windowWidth = 1600, windowHeight = 900, desktopXOffset = 160, desktopYOffset = 90, desktopMouseX = 0, desktopMouseY = 0;
-	private float focalLength = 1, flying = 0;
+	private int cols, rows, platformWidth, platformHeight, windowWidth, windowHeight, desktopXOffset, desktopYOffset, desktopMouseX = 0, desktopMouseY = 0;
+	private float focalLength = 1, flying = 0, scl;
 	private float[] coords = new float[3], rotCoords; // 3d coordinates
 	private float[][] terrain;//height of each point
 	private boolean moveScreen = false;
@@ -30,14 +31,18 @@ public class Menu extends GraphicsHandler{
 	 * Creates the display
 	 */
 	public void setup(){
+		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();//get the dimensions of the platform
+		platformWidth = (int) d.getWidth();
+		platformHeight = (int) d.getHeight();
+		windowWidth = 10*platformWidth/16;
+		windowHeight = 10*platformHeight/16;
+		desktopXOffset = (platformWidth - windowWidth)/2;
+		desktopYOffset = (platformHeight - windowHeight)/2;
 		setDisplayEnvironment();
-		//System.out.println(Arrays.toString(PFont.list()));
 		rotate(PI);
-		int height = 2000;
-		int width = 2000;
 		scl = 10;
-		cols = width/scl;
-		rows = height/scl;
+		cols = (int) (windowWidth/scl);
+		rows = (int) (windowHeight/scl);
 		terrain = new float[cols][rows];
 	}
 
@@ -45,8 +50,7 @@ public class Menu extends GraphicsHandler{
 	 * Sets the display environment.
 	 */
 	public void settings(){
-		fullScreen();//fullScreen mode
-		//size(1600, 900);//size of screen 
+		fullScreen();//fullScreen mode 
 	}
 
 	private void setDisplayEnvironment(){
@@ -101,7 +105,6 @@ public class Menu extends GraphicsHandler{
 	 */
 	public void mouseReleased(){
 		moveScreen = false;
-		System.out.println(moveScreen);
 	}
 
 	/**
@@ -145,7 +148,7 @@ public class Menu extends GraphicsHandler{
 				coords[0] = x - cols/2;//make x and y coordinates
 				coords[1] = y - 1;// - rows/2;
 				coords[2] = terrain[x][y - 1];
-				rotCoords  = xRotate((float) (-PI/6));
+				rotCoords  = xRotate(-PI/6);
 				vertex(rotCoords[0]*scl*rotCoords[1]/20, scl*rotCoords[2]*rotCoords[1]/20);//draw triangle
 				
 				//if (x != cols){
@@ -156,21 +159,18 @@ public class Menu extends GraphicsHandler{
 				rotCoords = xRotate(-PI/6);
 				vertex(scl*rotCoords[0]*rotCoords[1]/20, scl*rotCoords[2]*rotCoords[1]/20);//draw triangle
 				
-				//vertex(scl*coords[0], scl*coords[1]);
-				//vertex(scl*coords[0], scl*(coords[1]+1));
 			}
 			endShape();
 		}
 		
 		if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 - 42 && mouseY < 2*windowHeight/3 + 42)fill(0, 0, 0);
 		else fill(255,255,255);
+		ellipse(0 ,0 ,300 ,74 );
 		//TODO: Instert cool title here.
-		PFont font = createFont("Ani", 200);
+		PFont font = createFont("Ani", windowWidth/8);
 		fill(0,0,0);
 		textFont(font);
-		text("Tales Of Valhalla", -750, -300);
-
-		ellipse(0 ,0 ,300 ,74 );
+		text("Tales Of Valhalla", -17*windowWidth/36, -windowHeight/4);
 		font = createFont("Ani", 42);
 		fill(0,0,255);
 		textFont(font);

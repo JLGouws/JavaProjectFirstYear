@@ -6,6 +6,8 @@ import card.Card;//the deck has cards
 
 import player.Player;
 
+import java.util.Arrays;//because I am lazy
+
 public class Deck{
 
 	private Card[] cards = new Card[30];//the cards that can be played.
@@ -15,6 +17,21 @@ public class Deck{
 	 * Constructor, initialises the cards
 	 */
 	public Deck(Player player){
+		for (int i = 0; i < 30; i++) {
+			if(i < 6) cards[i] = new Archer(player);
+			else if(i >= 6 && i < 12) cards[i] = new Boar(player);
+			else if(i >= 12 && i < 18) cards[i] = new Golem(player);
+			else if(i >= 18 && i < 24) cards[i] = new Mage(player);
+			else if( i >= 24 && i < 30) cards[i] = new Minion(player);	
+		}
+		this.randomShuffle();
+	}
+
+	/**
+	 * Constructor for testing
+	 */
+	public Deck(){;
+		Player player = new Player();
 		for (int i = 0; i < 30; i++) {
 			if(i < 6) cards[i] = new Archer(player);
 			else if(i >= 6 && i < 12) cards[i] = new Boar(player);
@@ -38,7 +55,7 @@ public class Deck{
 	/**
 	 * Moves each card in the deck to a random position
 	 */
-	private void randomShuffle(){
+	protected void randomShuffle(){
 		int random; //stores a temporary random number.
 		Card[] cardsCopy = new Card[25];
 		int[] indices = new int[25], choices = new int[25];
@@ -59,4 +76,12 @@ public class Deck{
 		}				
 	}
 
+	/**
+	 * Shuffles the deck with a riffle shuffle.
+	 */
+	protected void riffleShuffle(){
+		Card[] tempDeck = cards.clone();
+		System.out.println(cards);
+		System.out.println(tempDeck);
+	}
 }

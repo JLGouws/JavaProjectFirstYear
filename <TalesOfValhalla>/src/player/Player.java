@@ -5,6 +5,7 @@ import deck.*;
 public class Player {
 	private Deck deck;
 	private Hand hand;
+	public int mana, health, max_health, max_mana;
 
 	/**
 	* Constructor, initializes player
@@ -12,6 +13,10 @@ public class Player {
 	public Player(){
 		deck = new Deck(this);
 		hand = new Hand(deck);
+		max_health = 20;
+		max_mana = 200;
+		mana = 200;
+		health = 20;
 	}
 	
 	/**
