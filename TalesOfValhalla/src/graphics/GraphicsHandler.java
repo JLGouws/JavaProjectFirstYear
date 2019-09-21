@@ -20,7 +20,6 @@ public class GraphicsHandler extends PApplet{
 	static protected Board board;
 	static protected boolean[] updateBoard = new boolean[]{false, false};
 	static protected int turnIndex = 0;
-	static protected MainMenu mainMenu;
 
 	/**
 	 * Constructor for game.
@@ -29,8 +28,5 @@ public class GraphicsHandler extends PApplet{
 		players[0] = new Player();
 		players[1] = new Player();
 		board = new Board();
-	}
-	static public void createMainMenu(Menu menu){
-		mainMenu = new MainMenu(menu);
 	}
 }

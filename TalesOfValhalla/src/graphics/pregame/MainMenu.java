@@ -6,18 +6,8 @@ import graphics.GraphicsHandler;//to communicate to PApplet and the program.
 
 public class MainMenu extends Menu {
 
-	private Menu menu;
 	private float[] coords = new float[3], rotCoords;
 
-	public MainMenu(Menu menu){
-		//because java is stupid
-		this.menu = menu;
-		this.scl = menu.scl;
-		this.rows = menu.rows;
-		this.cols = menu.cols;
-		this.windowWidth = menu.windowWidth;
-		this.windowHeight = menu.windowHeight;
-	}
 
 	/**
 	 * Game loop.
@@ -29,7 +19,7 @@ public class MainMenu extends Menu {
 		for (int y = 0; y < rows; y++) {
 		float xoff = 0;
 	    		for (int x = 0; x < cols; x++) {
-	      			menu.terrain[x][y] = noise(xoff, yoff)*scl-20;
+	      			terrain[x][y] = noise(xoff, yoff)*scl-20;
 	      			xoff += 0.05;
 	    		}
 	    	yoff += 0.05;
@@ -37,49 +27,49 @@ public class MainMenu extends Menu {
 
 
 		//make array of triangles
-		this.menu.fill(34, 51, 0);
-		this.menu.stroke(0);//white lines
+		fill(34, 51, 0);
+		stroke(0);//white lines
 		//don't fill shapes
-		this.menu.background(0, 15, 137);//phthalo blue background
-		this.menu.translate(menu.windowWidth/2, 2*menu.windowHeight/3);//draw in the middle bottom
+		background(0, 15, 137);//phthalo blue background
+		translate(windowWidth/2, 2*windowHeight/3);//draw in the middle bottom
 
 		for(int y = 2; y < rows; y++){
-			menu.beginShape(TRIANGLE_STRIP);
+			beginShape(TRIANGLE_STRIP);
 			for(int x = 0; x < cols; x++){
 				
 				coords[0] = x - cols/2;//make x and y coordinates
 				coords[1] = y - 1;// - rows/2;
-				coords[2] = menu.terrain[x][y - 1];
+				coords[2] = terrain[x][y - 1];
 				rotCoords  = xRotate(-PI/6);
-				menu.vertex(rotCoords[0]*scl*rotCoords[1]/20, scl*rotCoords[2]*rotCoords[1]/20);//draw triangle
+				vertex(rotCoords[0]*scl*rotCoords[1]/20, scl*rotCoords[2]*rotCoords[1]/20);//draw triangle
 
 				coords[0] = x - cols/2;//make x and y coordinates
 				coords[1] = y ;
-				coords[2] = menu.terrain[x][y];
+				coords[2] = terrain[x][y];
 				rotCoords = xRotate(-PI/6);
-				menu.vertex(scl*rotCoords[0]*rotCoords[1]/20, scl*rotCoords[2]*rotCoords[1]/20);//draw triangle
+				vertex(scl*rotCoords[0]*rotCoords[1]/20, scl*rotCoords[2]*rotCoords[1]/20);//draw triangle
 				/*try{
 					Thread.sleep(500);
 				}catch(Exception e){}*/
 			}
-			menu.endShape();
+			endShape();
 		}
 
-		menu.ellipse(0 ,0 ,300 ,74 );
+		ellipse(0 ,0 ,300 ,74 );
 		
-		if(menu.mouseX < windowWidth/2 + 150 && menu.mouseX > windowWidth/2 - 150 && menu.mouseY > 2*windowHeight/3 - 42 && menu.mouseY < 2*windowHeight/3 + 42) this.menu.fill(0, 0, 0);
-		else this.menu.fill(255,255,255);
-		this.menu.ellipse(0 ,0 ,300 ,74 );
+		if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 - 42 && mouseY < 2*windowHeight/3 + 42) fill(0, 0, 0);
+		else fill(255,255,255);
+		ellipse(0 ,0 ,300 ,74 );
 		//TODO: Instert cool title here.
-		PFont font = this.menu.createFont("Ani", windowWidth/8);
-		this.menu.fill(0,0,0);
-		this.menu.textFont(font);
-		this.menu.textAlign(CENTER, CENTER);
-		this.menu.text("Tales Of Valhalla", 0, -windowHeight/2);
-		font = this.menu.createFont("Dialog.plain", 42);
-		this.menu.fill(0,0,255);
-		this.menu.textFont(font);
-		this.menu.text("Play", 0, 0);
+		PFont font = createFont("Ani", windowWidth/8);
+		fill(0,0,0);
+		textFont(font);
+		textAlign(CENTER, CENTER);
+		text("Tales Of Valhalla", 0, -windowHeight/2);
+		font = createFont("Dialog.plain", 42);
+		fill(0,0,255);
+		textFont(font);
+		text("Play", 0, 0);
 	}
 
 	/**

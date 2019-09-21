@@ -6,6 +6,6 @@ import processing.core.*;
 
 public class Backbone{
 	static public void main(String[] lol){
-		PApplet.main("graphics.pregame.Menu");
+		PApplet.main("graphics.pregame.MenuDraw");
 	}
 }

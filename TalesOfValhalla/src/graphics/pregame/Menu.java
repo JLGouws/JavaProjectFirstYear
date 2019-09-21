@@ -46,7 +46,6 @@ public class Menu extends GraphicsHandler{
 		cols = (int) (windowWidth/scl);
 		rows = (int) (windowHeight/scl);
 		terrain = new float[cols][rows];
-		GraphicsHandler.createMainMenu(this);
 	}
 
 	/**
@@ -67,7 +66,7 @@ public class Menu extends GraphicsHandler{
 	/**
 	 * Moves the window.
 	 */
-	private void moveWindow(){
+	protected void moveWindow(){
 		int dx = mouseX - desktopMouseX + desktopXOffset;//how much has the mouse moved by in the x direction?
 		int dy = mouseY - desktopMouseY + desktopYOffset;//how much has the mouse moved by in the y direction?
 		int dxsmall = 0, dysmall =0 ;
@@ -185,18 +184,9 @@ public class Menu extends GraphicsHandler{
 	/**
 	 * Draws the window options
 	 */
-	private void drawWindowOptions(){
+	protected void drawWindowOptions(){
 		fill(0xFF888888);
 		ellipse(super.width/2  - super.width/138, -2*super.height/3 + super.width/138, super.width/69, super.width/69);
-	}
-
-	/**
-	 * Driver method runs as an infinite loop.
-	 */
-	public void draw(){
-		if(moveScreen) moveWindow();
-		GraphicsHandler.mainMenu.mainMenu();
-		drawWindowOptions();
 	}
 
 	/**
