@@ -15,7 +15,7 @@ public class Deck implements Serializable {
 	static private final int DECK_SIZE = 30;
 	private Card[] baseCards = new Card[30], cards = new Card[30];//the cards that can be played.
 	private int curIndex = 0; 
-	private int[] places = new int[DECK_SIZE];
+	protected int[] places = new int[DECK_SIZE];
 	private double entropy;
 
 	/**
@@ -156,5 +156,57 @@ public class Deck implements Serializable {
 			places[i] = placesCopy[j];
 			i--;
 		}
+	}
+
+	/**
+	 * Does an overhand shuffle of places
+	 */
+	protected void overHandShuffle(){
+		places = doOverHandShuffle(places);
+	}
+
+	/**
+	 * Recursive implementation of the overhand shuffle.
+	 *
+	 * @param positions the positions of the the cards in the deck 
+	 *
+	 * @return The shuffled array;
+	 */
+	private int[] doOverHandShuffle(int[] positions){
+		int split = (int) (Math.random() * positions.length + 1);//operator precedence
+		if (positions.length == 1) return positions;//base case
+		return joinArrays(doOverHandShuffle(subArray(positions, 0,  split)),subArray(positions, split, positions.length));//only else since return jumps out of method
+	}
+
+	/**
+	 * Joins the two arrays given as arguments
+	 *
+	 * @param arrayOne The first array that will be joined, will occupy the positions of 0 - the length of the array - 1 of the combined array.
+	 * @param arrayTwo The second array that will be joined, will occupy the rest of the positions of the remaining array.
+	 *
+	 * @return The joined array of the elements of the first array followed by the elements of the second array
+	 */
+	private int[] joinArrays(int[] arrayOne, int[] arrayTwo){
+		int[] returnable = new int[arrayOne.length + arrayTwo.length];
+		for (int i = 0 ; i < arrayTwo.length + arrayOne.length ; i++ ) {
+			if(i < arrayOne.length) returnable[i]  = arrayOne[i];
+			else returnable[i] = arrayTwo[i - arrayOne.length];
+		}
+		return returnable;
+	}
+
+	/**
+	 * Returns a sub array of the array given.
+	 *
+	 * @param array The array that needs to be split.
+	 * @param beginIndex The first position of the array that will be coppied.
+	 * @param endIndex The index upto which the array will be copied, this index will not be cppied.
+	 *
+	 * @param return THe subArray of the array given.
+	 */
+	private int[] subArray(int[] array, int beginIndex, int endIndex){
+		int[] returnable = new int[endIndex - beginIndex];
+		for( int i = 0; i < returnable.length ; i++ ) returnable[i] = array[i + beginIndex];
+		return returnable;
 	}
 }
