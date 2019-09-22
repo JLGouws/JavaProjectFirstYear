@@ -347,7 +347,7 @@ public class Game extends GraphicsHandler {
 				}
 			}
 		}*/	
-		PFont font = createFont("Warree", cardWidth/8);
+		PFont font = createFont("Dialog.plain", cardWidth/8);
 		textFont(font);
 		textAlign(CENTER, CENTER);
 		for (int i = -selectedAvatar.MAX_MOVE; i <= selectedAvatar.MAX_MOVE; i++ ) {

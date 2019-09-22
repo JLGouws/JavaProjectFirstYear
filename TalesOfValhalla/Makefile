@@ -54,3 +54,6 @@ compileAll:#compiles all files
 	make compilePlayer
 	make compileBoard
 	make compileGraphics
+
+generate_docs:
+	javadoc -d JavaDocs/graphics/pregame/ -cp src:lib/core.jar graphics.pregame
