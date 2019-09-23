@@ -1,6 +1,12 @@
 # JavaProjectFirstYear
-Java project for first year
+Tales Of Valhalla
+
+The first year card game project.
+
+Author - Jonathan Gouws - 19G4436
+
+Author - Thabo Sifumba - 19S1606
+
+Author - Phil - 19M5303
 
 TODO: add useful description
-
-Commit2 The first full current project upload. Saturday 7th September 2019.
