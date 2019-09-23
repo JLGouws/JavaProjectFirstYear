@@ -19,6 +19,7 @@ public class Menu extends GraphicsHandler{
 	protected float[] coords = new float[3], rotCoords; // 3d coordinates
 	protected float[][] terrain;//height of each point
 	protected boolean moveScreen = false;
+	protected boolean[] screenOn = new boolean[2];
 	//private MainMenu mainMenu = new MainMenu();
 
 	/**
@@ -32,6 +33,7 @@ public class Menu extends GraphicsHandler{
 	 * Creates the display
 	 */
 	public void setup(){
+		screenOn[0] = true;
 		//printArray(PFont.list());
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();//get the dimensions of the platform
 		platformWidth = (int) d.getWidth();
@@ -70,6 +72,8 @@ public class Menu extends GraphicsHandler{
 		int dx = mouseX - desktopMouseX + desktopXOffset;//how much has the mouse moved by in the x direction?
 		int dy = mouseY - desktopMouseY + desktopYOffset;//how much has the mouse moved by in the y direction?
 		int dxsmall = 0, dysmall =0 ;
+		System.out.println(dx + " " + dy);
+		System.out.println();
 		while (dxsmall <= Math.abs(dx) || dysmall <= Math.abs(dy) ){//smoothing
 			surface.setLocation(desktopXOffset, desktopYOffset);
 			if(dxsmall < Math.abs(dx)){
@@ -89,18 +93,45 @@ public class Menu extends GraphicsHandler{
 	 * Performs action on mouse click.
 	 */
 	public void mousePressed() {
+		if(screenOn[0]) mouseClickedScreenZero();
+		else if (screenOn[1]) mouseClickedScreenOne();
+	}
+
+	/**
+	 * Performs action on mouse if the click is on the main menu.
+	 */
+	private void mouseClickedScreenZero(){
 		if(mouseX < super.width/2 + 150 && mouseX > super.width/2 - 150 && mouseY > 2*super.height/3 - 42 && mouseY < 2*super.height/3 + 42){
-			GraphicsHandler.setUpGame();
-			PApplet.main("graphics.game.Game");
-			PApplet.main("graphics.game.Game");
-			surface.setVisible(false);
-			noLoop();
+			switchToGameOptions();
 		}else if(mouseY < 100){
 			moveScreen = true;
 			desktopMouseX = mouseX + desktopXOffset;
 			desktopMouseY = mouseY + desktopYOffset;
 		}
 		if (Math.pow((mouseX - (super.width - super.width/138)), 2) + Math.pow(mouseY - super.width/138, 2) < Math.pow(super.width/138, 2)) exit();
+	}
+
+	/**
+	 * Performs action on mouse if the click is on the game options menu.
+	 */
+	private void mouseClickedScreenOne(){
+		if(mouseX < super.width/2 + 150 && mouseX > super.width/2 - 150 && mouseY > 2*super.height/3 - 42 && mouseY < 2*super.height/3 + 42){
+			GraphicsHandler.setUpGame();
+			PApplet.main("graphics.game.Game");
+			PApplet.main("graphics.game.Game");
+			surface.setVisible(false);
+			noLoop();
+		} else if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 + windowHeight/8 - 42 && mouseY < 2*windowHeight/3 + windowHeight/8 + 42){
+
+		}
+	}
+
+	/**
+	 * Allows for the screen to be switched to the game options screen.
+	 */
+	private void switchToGameOptions(){
+		screenOn[0] = false;
+		screenOn[1] = true;
 	}
 
 	/**
@@ -120,9 +151,9 @@ public class Menu extends GraphicsHandler{
 
 
 	/**
-	 * Game loop.
+	 * Draws the terrain in the background.
 	 */
-	/*private void mainMenu(){
+	protected void drawTerrain(){
 		flying -= 0.1;
 
 		float yoff = flying;
@@ -165,21 +196,18 @@ public class Menu extends GraphicsHandler{
 			}
 			endShape();
 		}
-		
-		if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 - 42 && mouseY < 2*windowHeight/3 + 42)fill(0, 0, 0);
-		else fill(255,255,255);
-		ellipse(0 ,0 ,300 ,74 );
-		//TODO: Instert cool title here.
+	}
+
+	/**
+	 * Draws the title of the game.
+	 */
+	protected void drawTitle(){
 		PFont font = createFont("Ani", windowWidth/8);
 		fill(0,0,0);
 		textFont(font);
 		textAlign(CENTER, CENTER);
 		text("Tales Of Valhalla", 0, -windowHeight/2);
-		font = createFont("Dialog.plain", 42);
-		fill(0,0,255);
-		textFont(font);
-		text("Play", 0, 0);
-	}*/
+	}
 
 	/**
 	 * Draws the window options
@@ -192,18 +220,18 @@ public class Menu extends GraphicsHandler{
 	/**
 	 * Rotates coordinates by a given angle
 	 */
-	/*private float[] xRotate(float x){
+	private float[] xRotate(float x){
 	
 		float[][] rotX = new float[][] {new float[] {1, 		0, 		0}, // rotation matrix
 						new float[] {0, (float) Math.cos(x), (float) - Math.sin(x)},
 						new float[] {0, (float) Math.sin(x), (float) Math.cos(x) }};
 		return matMul(coords, rotX);//multiply matrix by vector
-	}*/
+	}
 
 	/**
 	 * Performs matrix multiplication
 	 */
-	/*private float[] matMul(float[] vector, float[][] matrix){
+	private float[] matMul(float[] vector, float[][] matrix){
 		float[] newVector = new float[matrix.length];
 		for(int i = 0; i < newVector.length; i++){
 			for(int	 j = 0; j < 3; j++){
@@ -211,6 +239,6 @@ public class Menu extends GraphicsHandler{
 			}
 		}
 		return newVector;		
-	}*/
+	}
 }
 

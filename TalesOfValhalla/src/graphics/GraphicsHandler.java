@@ -14,7 +14,7 @@ import board.Board;//playing board
 
 import card.Card;
 
-public class GraphicsHandler extends PApplet{
+public class GraphicsHandler extends PApplet{//abstract for shits and giggles
 	static protected ArrayList<GraphicsHandler> running = new ArrayList<>();
 	static protected Player[] players = new Player[2];
 	static protected Board board;

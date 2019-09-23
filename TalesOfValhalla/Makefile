@@ -48,12 +48,21 @@ compileAll:#compiles all files
 	make compileAvatars
 	make compileMain
 	make compilePregame
-	make compileGame
-	make compileGH
 	make compileDeck
 	make compilePlayer
+	make compileGame
+	make compileGH
 	make compileBoard
 	make compileGraphics
 
 generate_docs:
 	javadoc -d JavaDocs/graphics/pregame/ -cp src:lib/core.jar graphics.pregame
+	javadoc -d JavaDocs/graphics -cp src:lib/core.jar graphics
+	javadoc -d JavaDocs/deck -cp src:lib/core.jar deck
+	javadoc -d JavaDocs/graphics/game -cp src:lib/core.jar graphics.game
+	javadoc -d JavaDocs/player -cp src:lib/core.jar player
+	javadoc -d JavaDocs/board -cp src:lib/core.jar board
+	javadoc -d JavaDocs/cards -cp src:lib/core.jar cards
+	javadoc -d JavaDocs/cards/avatars -cp src:lib/core.jar cards.avatars
+	javadoc -d JavaDocs/card -cp src:lib/core.jar card
+	javadoc -d JavaDocs/main -cp src:lib/core.jar main

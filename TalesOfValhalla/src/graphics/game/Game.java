@@ -19,6 +19,7 @@ public class Game extends GraphicsHandler {
 	static final private double CARD_SPREAD_EXP = 1.2, CARD_ROTATION_EXP = 1.5;
 	static final private float TOKEN_FILL = (float) 0.9;
 	static final private int PLAYER0COLOUR = 0xFF2F74F4, PLAYER1COLOUR = 0xFFFF2800, BOARD_LIGHT = 0xFFFFE066, BOARD_DARK = 0xFF223300;//Don't know what the first FF is for but processing requires it
+	static final private String CARD_BACK_IMAGE_URI= "imagedata/cards/card.jpg";
 	public int index;
 	private Menu menu;
 	private int height, width, xTokenSelected, yTokenSelected,cardWidth, cardHeight;//environment variables
@@ -27,7 +28,7 @@ public class Game extends GraphicsHandler {
 	private float cardXpos, cardRot, downShift = 20, selectedCardXoffset, selectedCardYoffset, nexusRot = 0, nexusRotSpeed = (float) 0.1;
 	private PImage curCardImage;
 	private Card curCard;
-	private boolean cardSelected = false, tokenSelected = false;
+	private boolean cardSelected = false, tokenSelected = false, drawnCardSelected;
 	private cards.Avatar selectedAvatar;
 
 	/**
@@ -93,6 +94,7 @@ public class Game extends GraphicsHandler {
 			} else if(isOnBoard() && tokenSelected){
 				handleTokenMove();
 			}
+			if(mouseX > super.width - cardWidth && mouseY > super.height - cardHeight) handleCardDrawn(); 
 		}
 	}
 	
@@ -110,7 +112,7 @@ public class Game extends GraphicsHandler {
 	 */
 	public void mouseReleased(){
 		if(turnIndex == index){
-			if(!isOnBoard()){//cardSelected && mouseY > height - cardHeight/2 && mouseX > width/4 && mouseX < 3*width/4){//was a card released back to the cards
+			if(!isOnBoard() && cardSelected){//cardSelected && mouseY > height - cardHeight/2 && mouseX > width/4 && mouseX < 3*width/4){//was a card released back to the cards
 				replaceCard();//the card must be replaced
 			}else if (cardSelected && isOnBoard()){
 				int x = (int) (mouseX - selectedCardXoffset)/(cardWidth) - 1;
@@ -203,25 +205,42 @@ public class Game extends GraphicsHandler {
 	}
 
 	/**
+	 * Handles a card being drawn from the deck
+	 */
+	private void handleCardDrawn(){
+		cardSelected = true;//a card has been selected
+		curCardImage = loadImage(CARD_BACK_IMAGE_URI);
+		drawnCardSelected = true;
+		this.selectedCardXoffset = mouseX - (super.width - cardWidth);
+		this.selectedCardYoffset = mouseY - (super.height - cardHeight);
+	}
+
+	/**
 	 * Method that returns the selected card to the hand.
 	 */
 	private void replaceCard(){
 		int length = playerOneCards.size();
 		float cardOffset = width/4*((float) -Math.pow(CARD_SPREAD_EXP, 1 -length) + 1) + cardWidth/2;
 		int index = (int) (length*((mouseX - width/2 + cardOffset)/(2*cardOffset)));//quick maths
-		if(index < length && index >= 0){
-			playerOneCards.add(index, curCardImage);
-			playerOne.getHand().addCard(curCard, index);	
-			cardSelected = false;
-		} else if(index >= length){
-			playerOneCards.add(curCardImage);
-			playerOne.getHand().addCard(curCard);	
-			cardSelected = false;
-		}else if(index < 0 ){
-			playerOneCards.add(0, curCardImage);
-			playerOne.getHand().addCard(curCard, 0);	
-			cardSelected = false;
+		if (drawnCardSelected){
+			if(index < length && index >= 0){
+				players[this.index].drawCard(index);
+				playerOneCards.add(index, loadImage(playerOne.getHand().getCard(index).URI));//playerOneCards.add(loadImage(card.URI))	
+			}
+			drawnCardSelected = false;
+		}else{
+			if(index < length && index >= 0){
+				playerOneCards.add(index, curCardImage);
+				playerOne.getHand().addCard(curCard, index);	
+			} else if(index >= length){
+				playerOneCards.add(curCardImage);
+				playerOne.getHand().addCard(curCard);	
+			}else if(index < 0 ){
+				playerOneCards.add(0, curCardImage);
+				playerOne.getHand().addCard(curCard, 0);	
+			}
 		}
+		cardSelected = false;
 	}
 
 
@@ -448,6 +467,14 @@ public class Game extends GraphicsHandler {
 	}	
 
 	/**
+	 * Draws the deck of cards so that the player can draw a card from the deck.
+	 */
+	private void drawDeck(){
+		PImage cardImage = loadImage(CARD_BACK_IMAGE_URI);
+		if(players[index].canDraw())image(cardImage, super.width - cardWidth, super.height - cardHeight, cardWidth, cardHeight);
+	}
+
+	/**
 	 * A void method of processing, a game loop that repeats.
 	 */
 	public void draw(){
@@ -472,6 +499,7 @@ public class Game extends GraphicsHandler {
 		if (tokenSelected) {
 			drawAvatarMove();
 			drawAvatarAttack();
-		}		
+		}
+		drawDeck();		
 	}
 }

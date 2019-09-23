@@ -14,7 +14,7 @@ public class Hand {
 	 */
 	public Hand(Deck deck){
 		for(int i = 0; i < 5; i++){
-			cards.add(deck.getNext());
+			cards.add(deck.getNext(true));
 		}
 	}
 
@@ -62,5 +62,14 @@ public class Hand {
 	 */
 	public Card getCard(int i){
 		return cards.get(i);
+	}
+
+	/**
+	 * Method that gets the last card in the hand
+	 *
+	 * @return the last card in the hand.
+	 */
+	public Card getLast(){
+		return cards.get(cards.size()-1);
 	}
 }

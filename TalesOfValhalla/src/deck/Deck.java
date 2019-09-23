@@ -1,4 +1,10 @@
 package deck;
+/**
+ * The deck work handler for the program.
+ *
+ * @author J L Gouws <jonathan.gouws@gmail.com>
+ * @author 19G4436 <g19G4436@ru.ac.za>
+ */
 
 import cards.avatars.*;//
 
@@ -25,7 +31,7 @@ public class Deck implements Serializable {
 		setUpDeck(player);
 		while(entropy < 4.2){
 			riffleShuffle();
-			findEntropy();
+			findEntropy(places);
 		}
 		buildDeck();
 	}
@@ -36,11 +42,6 @@ public class Deck implements Serializable {
 	public Deck(){;
 		Player player = new Player();
 		setUpDeck(player);
-		this.fisherYatesShuffle();
-		while(entropy < 4.2 ){
-			riffleShuffle();
-			findEntropy();
-		}
 		buildDeck();
 	}
 
@@ -53,8 +54,8 @@ public class Deck implements Serializable {
 
 	/**
 	 * Sets the deck up for a player.
-	 * @param plaer The player that this deck is for.
 	 *
+	 * @param player The player that this deck is for.
 	 */
 	private void setUpDeck(Player player){
 		for (int i = 0; i < 30; i++) {
@@ -68,13 +69,19 @@ public class Deck implements Serializable {
 	}
 
 	/**
-	 *returns the next card in the deck.
+	 * Returns the next card in the deck by incrementing the current index, doesn't increment it if there are no cards to draw.
 	 *
-	 * @return the next card in the deck.
+	 * @param shouldDraw A boolean to indicate if the card should be drawn or not.
+	 *
+	 * @return the next card in the deck, if it exists other wise null.
 	 */
-	public Card getNext(){
-		curIndex = curIndex < 24 ? curIndex + 1: 0;
-		return cards[curIndex - 1];
+	public Card getNext(boolean shouldDraw){
+		Card returnable = cards[curIndex];
+		if(shouldDraw && returnable !=  null) {
+			cards[curIndex] = null;//"remove" this card from the deck
+			curIndex = (curIndex + 1) % DECK_SIZE;
+		}
+		return returnable;
 	}
 
 	
@@ -104,7 +111,7 @@ public class Deck implements Serializable {
 	 *
 	 * @param places the positions of the baseCards in the deck.
 	 */
-	protected void findEntropy(){
+	protected void findEntropy(int[] places){
 		entropy = 0;//reset entropy
 		int[] diffs = new int[DECK_SIZE];//reset the diffs
 		Arrays.stream(places).reduce((first, second) -> {
@@ -176,6 +183,81 @@ public class Deck implements Serializable {
 		int split = (int) (Math.random() * positions.length + 1);//operator precedence
 		if (positions.length == 1) return positions;//base case
 		return joinArrays(doOverHandShuffle(subArray(positions, 0,  split)),subArray(positions, split, positions.length));//only else since return jumps out of method
+	}
+
+	/**
+	 * Void method that cuts the deck around the middle of the deck.
+	 */
+	protected void cut(){
+		int split = (int) (Math.random() * 10) + DECK_SIZE/2 - 5;
+		places = joinArrays(subArray(places, split, DECK_SIZE),subArray(places, 0, split));
+	}
+
+	/**
+	 * Driver method for the faro shuffle.
+	 */
+	protected void faroShuffle(){
+		places = doRecursiveFaro(places);
+	}
+
+	/**
+	 * The interface of the recursive shuffle working method.
+	 *
+	 * @param positions The positions of the cards in the deck
+	 *
+	 * @return An integer of array of the positions of the cards in the deck of the faro shuffle after one run of the faro shuffle algorithm
+	 */
+	protected int[] doRecursiveFaro(int[] positions){
+		return doRecursiveFaro(subArray(positions, 0, positions.length/2), subArray(positions, positions.length/2, positions.length));
+	}	
+
+	/**
+	 * Does the faro shuffle recursively.
+	 *
+	 * @param halfOnePositions The positions of the cards in the first half of the deck.
+	 * @param halfTwoPositions The positions of the cards in the second half of the deck.
+	 *
+	 * @return An integer of array of the positions of the cards in the deck of the faro shuffle after one run of the faro shuffle algorithm
+	 */
+	private int[] doRecursiveFaro(int[] halfOnePositions, int[] halfTwoPositions){
+		if(halfOnePositions.length == 1 && halfTwoPositions.length == 1) return new int[] {halfOnePositions[0], halfTwoPositions[0]};
+		return joinArrays(new int[]{halfOnePositions[0], halfTwoPositions[0]} , doRecursiveFaro(subArray(halfOnePositions,1, halfOnePositions.length), subArray(halfTwoPositions, 1, halfTwoPositions.length)));//just works its way up or down the deck
+	}
+
+	/**
+	 * The interface of the no random shuffle method.
+	 *
+	 * @param positions The positions of the cards in the deck
+	 *
+	 * @return An integer of array of the positions of the cards in the deck of the deck after one run of the shuffles.
+	 */
+	protected int[] doNoRandomsShuffle(int[] positions){
+		int[][] halves = {subArray(positions, 0, positions.length/2), subArray(positions, positions.length/2, positions.length)};
+		int choice = 0;
+		if (System.currentTimeMillis() % 2  == 0) choice = 1;
+		try{
+			Thread.sleep((long) 1.9999);//otherwise java executes to quickly (yes this is ironic) and and the deck has negligible changes
+		}catch(Exception e){}
+		return doNoRandomsShuffle(halves[choice], halves[(choice + 1) % 2]);
+	}	
+
+	/**
+	 * Does a shuffle without generating any random numbers.
+	 *
+	 * @param halfOnePositions The positions of the cards in the first half of the deck.
+	 * @param halfTwoPositions The positions of the cards in the second half of the deck.
+	 *
+	 * @return An integer of array of the positions of the cards in the deck of the after one run of the shuffle
+	 */
+	private int[] doNoRandomsShuffle(int[] halfOnePositions, int[] halfTwoPositions){
+		if(halfOnePositions.length == 1 && halfTwoPositions.length == 1) return new int[] {halfOnePositions[0], halfTwoPositions[0]};
+		int[][] halves = {joinArrays(subArray(halfOnePositions, 0, halfOnePositions.length/2), subArray(halfTwoPositions, 0, halfOnePositions.length/2)), joinArrays(subArray(halfOnePositions, halfOnePositions.length/2, halfTwoPositions.length), subArray(halfTwoPositions, halfOnePositions.length/2, halfTwoPositions.length))};
+		int choice = 0;
+		if (System.currentTimeMillis() % 2 == 0) choice = 1;
+		try{
+			Thread.sleep((long)1.69999);//otherwise java executes to quickly (yes this is ironic) and and the deck has negligible changes
+		}catch(Exception ex ){}
+		return joinArrays(doNoRandomsShuffle(halves[choice]), doNoRandomsShuffle(halves[(choice + 1) % 2]));
 	}
 
 	/**
