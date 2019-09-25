@@ -19,7 +19,7 @@ public class Menu extends GraphicsHandler{
 	protected float[] coords = new float[3], rotCoords; // 3d coordinates
 	protected float[][] terrain;//height of each point
 	protected boolean moveScreen = false;
-	protected boolean[] screenOn = new boolean[2];
+	protected boolean[] screenOn = new boolean[3];
 	//private MainMenu mainMenu = new MainMenu();
 
 	/**
@@ -66,6 +66,15 @@ public class Menu extends GraphicsHandler{
 	}
 
 	/**
+	 * Prepares the surface to be moved.
+	 */
+	protected void handleBeginMoveScreen(){
+		moveScreen = true;
+		desktopMouseX = mouseX + desktopXOffset;
+		desktopMouseY = mouseY + desktopYOffset;
+	}
+
+	/**
 	 * Moves the window.
 	 */
 	protected void moveWindow(){
@@ -90,48 +99,19 @@ public class Menu extends GraphicsHandler{
 	}
 
 	/**
-	 * Performs action on mouse click.
-	 */
-	public void mousePressed() {
-		if(screenOn[0]) mouseClickedScreenZero();
-		else if (screenOn[1]) mouseClickedScreenOne();
-	}
-
-	/**
-	 * Performs action on mouse if the click is on the main menu.
-	 */
-	private void mouseClickedScreenZero(){
-		if(mouseX < super.width/2 + 150 && mouseX > super.width/2 - 150 && mouseY > 2*super.height/3 - 42 && mouseY < 2*super.height/3 + 42){
-			switchToGameOptions();
-		}else if(mouseY < 100){
-			moveScreen = true;
-			desktopMouseX = mouseX + desktopXOffset;
-			desktopMouseY = mouseY + desktopYOffset;
-		}
-		if (Math.pow((mouseX - (super.width - super.width/138)), 2) + Math.pow(mouseY - super.width/138, 2) < Math.pow(super.width/138, 2)) exit();
-	}
-
-	/**
-	 * Performs action on mouse if the click is on the game options menu.
-	 */
-	private void mouseClickedScreenOne(){
-		if(mouseX < super.width/2 + 150 && mouseX > super.width/2 - 150 && mouseY > 2*super.height/3 - 42 && mouseY < 2*super.height/3 + 42){
-			GraphicsHandler.setUpGame();
-			PApplet.main("graphics.game.Game");
-			PApplet.main("graphics.game.Game");
-			surface.setVisible(false);
-			noLoop();
-		} else if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 + windowHeight/8 - 42 && mouseY < 2*windowHeight/3 + windowHeight/8 + 42){
-
-		}
-	}
-
-	/**
 	 * Allows for the screen to be switched to the game options screen.
 	 */
-	private void switchToGameOptions(){
+	protected void switchToGameOptions(){
 		screenOn[0] = false;
 		screenOn[1] = true;
+	}
+
+	/**
+	 * Allows for the screen to be switched to the deckbuilder screen.
+	 */
+	protected void switchToDeckBuilder(){
+		screenOn[0] = false;
+		screenOn[2] = true;
 	}
 
 	/**
@@ -160,7 +140,7 @@ public class Menu extends GraphicsHandler{
 		for (int y = 0; y < rows; y++) {
 		float xoff = 0;
 	    		for (int x = 0; x < cols; x++) {
-	      			terrain[x][y] = noise(xoff, yoff)*scl-20;
+	      			terrain[x][y] = noise(xoff, yoff)*scl-20;//a psuedorandom number that is seeded by x offset and y offset
 	      			xoff += 0.05;
 	    		}
 	    		yoff += 0.05;
@@ -213,7 +193,8 @@ public class Menu extends GraphicsHandler{
 	 * Draws the window options
 	 */
 	protected void drawWindowOptions(){
-		fill(0xFF888888);
+		fill(0xFF888888);//grey 
+		//TODO add X?
 		ellipse(super.width/2  - super.width/138, -2*super.height/3 + super.width/138, super.width/69, super.width/69);
 	}
 

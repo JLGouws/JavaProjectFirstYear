@@ -4,6 +4,8 @@ import card.Card;
 
 import player.Player;
 
+import java.io.Serializable;
+
 public class Avatar extends Card{
 	
 	public final int HEALTH, DAMAGE, RANGE, MAX_MOVE, MANA_COST, MANA_MOVE_COST;
@@ -16,5 +18,14 @@ public class Avatar extends Card{
 		MAX_MOVE = max_move;
 		MANA_COST = mana_cost;
 		MANA_MOVE_COST = MANA_COST;
+	}
+
+	public Avatar(){
+		HEALTH = 0;
+		DAMAGE = 0;
+		RANGE = 0;
+		MAX_MOVE = 0;
+		MANA_COST = 0;
+		MANA_MOVE_COST =0;
 	}
 }

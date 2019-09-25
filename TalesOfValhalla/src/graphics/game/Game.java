@@ -38,7 +38,23 @@ public class Game extends GraphicsHandler {
 		if(running.size() == 1){
 			playerOne = players[0];
 			playerTwo = players[1];
-			index = 0;
+		} else if(running.size() == 2){
+			index = 1;
+			playerOne = players[1];
+			playerTwo = players[0];
+		}
+		running.add(this);
+		menu = (Menu) running.get(0);//menu must be the first thing initialized.
+	}
+
+	/**
+	 * Convenience constructor for the game. Its main use is for the AI class.
+	 */
+	public Game(Player player){
+		players[1] = player;
+		if(running.size() == 1){
+			playerOne = players[0];
+			playerTwo = players[1];
 		} else if(running.size() == 2){
 			index = 1;
 			playerOne = players[1];
@@ -158,14 +174,32 @@ public class Game extends GraphicsHandler {
 	/**
 	 * Switches the players turn
 	 */
-	private void handleEndTurn(){
+	protected void handleEndTurn(){
 		turnIndex = (turnIndex + 1) % 2;//switch turn index
-		players[index].mana += 50;//increment this player's mana
+		players[index].addMana(50);//increment this player's mana
 	}
+
 	/**
-	 * Plays a card
+	 * Plays the selected card to the board.
+	 *
+	 * @param x the x position of the board that the card will be added to.
+	 * @param y the y position of the board that the card will be added to.
 	 */
-	private void handlePlayCard(int x, int y){
+	protected void handlePlayCard(int x, int y){
+		board.addCard(curCard, x, y);
+		cardSelected = false;
+		updateBoard[0] = true;
+		updateBoard[1] = true;
+	}
+
+	/**
+	 * Plays a given card from the board to the hand.
+	 *
+	 * @param i the index of the card in the hand that will be played
+	 * @param x the x position of the board that the card will be added to.
+	 * @param y the y position of the board that the card will be added to.
+	 */
+	protected void handlePlayCard(int i, int x, int y){
 		board.addCard(curCard, x, y);
 		cardSelected = false;
 		updateBoard[0] = true;
@@ -194,12 +228,11 @@ public class Game extends GraphicsHandler {
 		int x = (int) mouseX/(cardWidth) - 1, y = (int) (mouseY - downShift)/(cardHeight/2), dx = Math.abs(this.xTokenSelected - x), dy = Math.abs(this.yTokenSelected - y);
 		Card selectedToken = board.getBoard()[this.xTokenSelected][this.yTokenSelected];
 		int cost = ((cards.Avatar) selectedToken).MANA_MOVE_COST * (dx + dy);
-		if(selectedToken instanceof cards.Avatar && dx + dy <= ((cards.Avatar) selectedToken).MAX_MOVE && players[index].mana - cost >=0){//is this move valid?
+		if(selectedToken instanceof cards.Avatar && dx + dy <= ((cards.Avatar) selectedToken).MAX_MOVE && players[index].removeManaAndGetValid(cost)){//is this move valid?
 			this.board.getBoard()[x][y] = selectedToken;
 			this.board.getBoard()[this.xTokenSelected][this.yTokenSelected] = null;
 			updateBoard[0] = true;
 			updateBoard[1] = true;
-			players[index].mana -= cost;
 			this.tokenSelected = false;
 		}
 	}

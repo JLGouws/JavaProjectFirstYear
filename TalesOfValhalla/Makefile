@@ -40,6 +40,9 @@ compilePlayer:
 compileBoard:
 	$(JC) $(BIN) -cp bin src/board/Board.java
 
+compileAI:
+	$(JC) $(BIN) -cp bin:$(GRL) src/AI/*.java	
+
 compileGraphics:
 	$(JC) $(BIN) -cp $(GRL):bin src/graphics/GraphicsHandler.java src/graphics/pregame/Menu.java src/graphics/game/Game.java
 
@@ -47,13 +50,14 @@ compileAll:#compiles all files
 	make compileCard
 	make compileAvatars
 	make compileMain
+	make compileGH
 	make compilePregame
 	make compileDeck
 	make compilePlayer
 	make compileGame
-	make compileGH
 	make compileBoard
 	make compileGraphics
+	make compileAI
 
 generate_docs:
 	javadoc -d JavaDocs/graphics/pregame/ -cp src:lib/core.jar graphics.pregame

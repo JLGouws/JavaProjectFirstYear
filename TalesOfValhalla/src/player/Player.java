@@ -2,16 +2,37 @@ package player;
 
 import deck.*;
 
-public class Player {
+import java.io.Serializable;
+
+public class Player implements Serializable{
+
+	static private final int MANA_CARD_DRAW_COST = 40; 
+	private final String NAME;
+	public int mana, health, max_health, max_mana;
 	private Deck deck;
 	private Hand hand;
-	static private final int MANA_CARD_DRAW_COST = 40; 
-	public int mana, health, max_health, max_mana;
 
 	/**
-	* Constructor, initializes player
-	*/
+	 * Constructor, initializes player
+	 *
+	 * @param name The name of the player that this deck belongs to.
+	 */
+	public Player(String name){
+		NAME = name;
+		deck = new Deck(this);
+		hand = new Hand(deck);
+		max_health = 20;
+		max_mana = 200;
+		mana = 200;
+		health = 20;
+	}
+
+	/**
+	 * Constructor, initializes player
+	 *
+	 */
 	public Player(){
+		NAME = "NO-NAME9999999999999999999999999999999999999999999999999999999999999999999";
 		deck = new Deck(this);
 		hand = new Hand(deck);
 		max_health = 20;
@@ -58,5 +79,35 @@ public class Player {
 	 */
 	public boolean canDraw(){
 		return deck.getNext(false) != null;
+	}
+
+	/**
+	 * Adds mana to the player's current mana.
+	 *
+	 * @param mana the amount of mana that will be added to the players mana
+	 */
+	public void addMana(int mana){
+		this.mana = this.mana + mana > max_mana ? max_mana : this.mana + mana; 
+	}
+
+	/**
+	 * Removes mana to the player's current mana.
+	 *
+	 * @param mana the amount of mana that will be removed from the players mana.
+	 *
+	 * @return Returns if the move was valid.
+	 */
+	public boolean removeManaAndGetValid(int mana){
+		this.mana = this.mana - mana >= 0 ? this.mana - mana : mana;
+		return this.mana - mana >= 0;
+	}
+
+	/**
+	 * A to string method, what more do you want?
+	 *
+	 * @return You guessed it, a String representation of a player, (really just their name).
+	 */
+	public String toString(){
+		return this.NAME;
 	}
 }

@@ -1,9 +1,12 @@
 package deck;
 
 import java.util.ArrayList;
+
 import card.Card;
 
-public class Hand {
+import java.io.Serializable;
+
+public class Hand implements Serializable{
 	
 	private ArrayList<Card> cards = new ArrayList<>();
 
