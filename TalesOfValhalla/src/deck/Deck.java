@@ -23,6 +23,7 @@ public class Deck implements Serializable {
 	private int curIndex = 0; 
 	protected int[] places = new int[DECK_SIZE];
 	private double entropy;
+	private Player player;//who owns this deck?
 
 	/**
 	 * Constructor, initialises the baseCards
@@ -46,6 +47,13 @@ public class Deck implements Serializable {
 	}
 
 	/**
+	 * Return the player of this deck.
+	 */
+	public Player getPlayer(){
+		return this.player;
+	}
+
+	/**
 	 * Builds the deck from the places array
 	 */
 	private void buildDeck(){
@@ -58,6 +66,7 @@ public class Deck implements Serializable {
 	 * @param player The player that this deck is for.
 	 */
 	private void setUpDeck(Player player){
+		this.player = player;//I own this deck.
 		for (int i = 0; i < 30; i++) {
 			if(i < 6) baseCards[i] = new Archer(player);
 			else if(i >= 6 && i < 12) baseCards[i] = new Boar(player);
@@ -288,7 +297,16 @@ public class Deck implements Serializable {
 	 */
 	private int[] subArray(int[] array, int beginIndex, int endIndex){
 		int[] returnable = new int[endIndex - beginIndex];
-		for( int i = 0; i < returnable.length ; i++ ) returnable[i] = array[i + beginIndex];
+		for( int i = 0; i < returnable.length ; i++ ) returnable[i] = array[i + beginIndex];//you really start to miss python's lists at this point
 		return returnable;
+	}
+
+	/**
+	 * Testing method only.
+	 *
+	 * Returns the cards in the deck
+	 */
+	protected Card[] getCards(){
+		return cards;
 	}
 }

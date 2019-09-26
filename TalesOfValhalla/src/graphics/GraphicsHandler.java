@@ -24,9 +24,17 @@ public class GraphicsHandler extends PApplet{//abstract for shits and giggles
 	/**
 	 * Constructor for game.
 	 */
-	static public void setUpGame(){
+	static public void setUpGameForTwoPlayer(){
 		players[0] = new Player();
 		players[1] = new Player();
+		board = new Board();
+	}
+
+	/**
+	 * Constructor for game with one player against AI.
+	 */
+	static public void setUpGameForAi(){
+		players[0] = new Player();
 		board = new Board();
 	}
 }
