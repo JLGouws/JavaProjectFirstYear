@@ -33,6 +33,7 @@ public class Menu extends GraphicsHandler{
 	 * Creates the display
 	 */
 	public void setup(){
+		textAlign(CENTER, CENTER);
 		screenOn[0] = true;
 		//printArray(PFont.list());
 		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();//get the dimensions of the platform
@@ -172,7 +173,7 @@ public class Menu extends GraphicsHandler{
 		fill(34, 51, 0);
 		stroke(0);//white lines
 		//don't fill shapes
-		background(0, 15, 137);//phthalo blue background
+		background(0xFF00a8f3);//phthalo blue background (0xFF00a8f3) for specific colour
 		translate(super.width/2, 2*super.height/3);//draw in the middle bottom
 
 		for(int y = 2; y < rows; y++){
@@ -202,11 +203,13 @@ public class Menu extends GraphicsHandler{
 	 * Draws the title of the game.
 	 */
 	protected void drawTitle(){
-		PFont font = createFont("Ani", windowWidth/8);
-		fill(0,0,0);
-		textFont(font);
-		textAlign(CENTER, CENTER);
+		/*
 		text("Tales Of Valhalla", 0, -windowHeight/2);
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		int centerX = screenSize.width/2;
+		int centerY = screenSize.height/2;*/
+		PImage curCardImage = loadImage("imagedata/title/proper.png");// this is the code changed ( path , but relative addressing "imagedata/title/")
+		image(curCardImage,  - windowWidth/4, - windowHeight/((float) 1.75) , windowWidth / 2, windowHeight / 3);  // this is the code changed  (curCardImage, x, y, width, height) set conditions are ( CENTER - 450, CENTER - 300, windowwidth / 2, windowheight / 3)
 	}
 
 	/**
