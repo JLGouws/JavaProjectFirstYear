@@ -19,7 +19,7 @@ public class Game extends GraphicsHandler {
 	static final private double CARD_SPREAD_EXP = 1.2, CARD_ROTATION_EXP = 1.5;
 	static final private float TOKEN_FILL = (float) 0.9;
 	static final private int PLAYER0COLOUR = 0xFF2F74F4, PLAYER1COLOUR = 0xFFFF2800, BOARD_LIGHT = 0xFFFFE066, BOARD_DARK = 0xFF223300;//Don't know what the first FF is for but processing requires it
-	static final private String CARD_BACK_IMAGE_URI= "imagedata/cards/card.jpg";
+	static final private String CARD_BACK_IMAGE_URI= "imagedata/cards/cardBack.png";
 	public int index;
 	private Menu menu;
 	private int height, width, xTokenSelected, yTokenSelected,cardWidth, cardHeight;//environment variables
