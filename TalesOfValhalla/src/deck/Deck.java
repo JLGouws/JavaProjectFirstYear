@@ -309,4 +309,13 @@ public class Deck implements Serializable {
 	protected Card[] getCards(){
 		return cards;
 	}
+
+	/**
+	 * Accessor method for base cards.
+	 *
+	 * @return an array of cards, these are the base cards of the deck.
+	 */
+	public Card[] getBaseCards(){
+		return baseCards;
+	}
 }

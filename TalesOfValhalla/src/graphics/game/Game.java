@@ -20,6 +20,7 @@ public class Game extends GraphicsHandler {
 	static final private float TOKEN_FILL = (float) 0.9;
 	static final private int PLAYER0COLOUR = 0xFF2F74F4, PLAYER1COLOUR = 0xFFFF2800, BOARD_LIGHT = 0xFFFFE066, BOARD_DARK = 0xFF223300;//Don't know what the first FF is for but processing requires it
 	static final private String CARD_BACK_IMAGE_URI= "imagedata/cards/cardBack.png";
+	static private float tileHeight, tileWidth, boardXOffset, boardYOffset;
 	public int index;
 	private Menu menu;
 	private int height, width, xTokenSelected, yTokenSelected,cardWidth, cardHeight;//environment variables
@@ -81,9 +82,14 @@ public class Game extends GraphicsHandler {
 		width = super.width;
 		cardHeight = height/4;
 		cardWidth = width/12;
+		tileHeight = 3*cardHeight/7;
+		tileWidth = cardWidth/(float) 1.035;
+		boardXOffset = width/(float) 9.75;
+		boardYOffset = height/(float) 8.9;
 		//create background
 		translate(0,downShift);//shift screen down
-		background(255,255,255);
+		PImage background = loadImage("imagedata/backGround/backing.jpg");
+		image(background, 0, -downShift, super.width, super.height);
 		//playerOne = new Player();
 		playerOne.getHand().getCards().forEach(card -> playerOneCards.add(loadImage(card.URI)));//playerOneCards.add(loadImage(card.URI))
 		drawBoard();
@@ -131,8 +137,8 @@ public class Game extends GraphicsHandler {
 			if(!isOnBoard() && cardSelected){//cardSelected && mouseY > height - cardHeight/2 && mouseX > width/4 && mouseX < 3*width/4){//was a card released back to the cards
 				replaceCard();//the card must be replaced
 			}else if (cardSelected && isOnBoard()){
-				int x = (int) (mouseX - selectedCardXoffset)/(cardWidth) - 1;
-				int y = (int) (mouseY - selectedCardYoffset - downShift)/(cardHeight/2);
+				int x = (int) (mouseX - boardXOffset - selectedCardXoffset)/(cardWidth);
+				int y = (int) (mouseY - boardYOffset - selectedCardYoffset - downShift)/(cardHeight/2);
 				if(curCard instanceof cards.Avatar && x != 0 && playerOne == players[0]){
 					replaceCard();
 					return;
@@ -351,15 +357,15 @@ public class Game extends GraphicsHandler {
 	 * @return A boolean that is true if the mouse is on the board otherwise false
 	 */
 	private boolean isOnBoard(){
-		return (mouseX > cardWidth && mouseX < (width - cardWidth) && mouseY > downShift && mouseY < (7*cardHeight/2 ));
+		return (mouseX - selectedCardXoffset > boardXOffset && mouseX - selectedCardXoffset < (width - boardXOffset) && mouseY - selectedCardYoffset > downShift + boardYOffset && mouseY - selectedCardYoffset < downShift + boardYOffset + (7*tileHeight));
 	}
 
 	/**
 	 * Highlights the square that the mouse is in.
 	 */
 	private void highlightSquare(){
-		int x = (int) (mouseX - selectedCardXoffset)/(cardWidth) - 1;
-		int y = (int) (mouseY - selectedCardYoffset - downShift)/(cardHeight/2);
+		int x = (int) ((mouseX - boardXOffset - selectedCardXoffset)/(tileWidth));
+		int y = (int) ((mouseY - boardYOffset - selectedCardYoffset - downShift)/(tileHeight));
 		boolean shouldHighlight = false;//should the square be highlighted?
 		if (curCard instanceof cards.Avatar && x == 0 && playerOne == players[0]){
 			shouldHighlight = true;
@@ -367,11 +373,13 @@ public class Game extends GraphicsHandler {
 			shouldHighlight = true;
 		}
 		if (shouldHighlight && board.getBoard()[x][y] == null){
+			translate(boardXOffset, boardYOffset);
 			fill(255, 0, 0);
-			rect((x+1)*cardWidth, y*cardHeight/2 , cardWidth, cardHeight/2);
-			if( ((x+1) % 2 == 0) != (y % 2 == 0)) fill(BOARD_DARK); //alternating colours
+			rect((x)*tileWidth, y*tileHeight , tileWidth, tileHeight);
+			if( ((x) % 2 == 0) != (y % 2 == 0)) fill(BOARD_DARK); //alternating colours
 			else fill(BOARD_LIGHT);
-			rect((x+1)*cardWidth + (cardWidth - width/13)/2, y*cardHeight/2 + (cardHeight/2 - height/9)/2 , width/13, height/9);
+			rect((x)*tileWidth + (tileWidth - (float) 0.9*tileWidth)/2, y*tileHeight + (tileHeight - (float) 0.9 * tileHeight)/2 , (float) 0.9 * tileWidth, (float) 0.9 * tileHeight);
+			translate(-boardXOffset, - boardYOffset);
 		}
 	}
 
@@ -406,7 +414,7 @@ public class Game extends GraphicsHandler {
 			if(0 <= this.xTokenSelected + i && this.xTokenSelected + i < 10)for (int j = -selectedAvatar.MAX_MOVE + Math.abs(i) ; j <= selectedAvatar.MAX_MOVE - Math.abs(i); j++ ) {
 				fill(0x88888888);
 				if(0 <= this.yTokenSelected + j && this.yTokenSelected + j < 7 && !(i == 0 && j == 0) && board.getBoard()[this.xTokenSelected + i][this.yTokenSelected + j] == null){
-					ellipse((this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, (this.yTokenSelected + j) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);//should this be drawn?
+					ellipse((this.xTokenSelected + 1 + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight  + tileHeight/2, tileWidth/2, tileHeight/2);//should this be drawn?
 					fill(0xFF001399);
 					text(selectedAvatar.MANA_MOVE_COST * (Math.abs(j) + Math.abs(i)), (this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, (this.yTokenSelected + j) * cardHeight/2  + cardHeight/4);
 				}
@@ -448,26 +456,28 @@ public class Game extends GraphicsHandler {
 	 */
 	public void drawBoard(){
 		stroke(0);
-		Card[][] curBoard = board.getBoard();//store the current board so that the board doesn't have to be fetched again.
-		for(int i = 1; i < 11; i++){
-			for ( int j = 0 ; j < 7 ; j++ ) {
-				if( (i % 2 == 0) != (j % 2 == 0)) fill(BOARD_DARK); //alternating colours
-				else fill(BOARD_LIGHT);
-				rect(i*cardWidth, j*cardHeight/2 , cardWidth, cardHeight/2);
-				if(curBoard[i - 1][j] != null) {
-					Card tmpCard = curBoard[i - 1][j];
-					if(tmpCard.player == playerOne) {
-						if(index == 0) fill(PLAYER0COLOUR);
-						else fill(PLAYER1COLOUR);
-					}else{
-						if(index == 0) fill(PLAYER1COLOUR);
-						else fill(PLAYER0COLOUR);
-					}					
-					ellipse(((float) 0.5 + i)*cardWidth, ((float) 0.5 + j)*cardHeight/2, cardWidth,cardHeight/2);
-					image(loadImage(tmpCard.TOKEN),(i + (1 - TOKEN_FILL)/2)*cardWidth, (j + (1 - TOKEN_FILL)/2)*cardHeight/2 , TOKEN_FILL*cardWidth, TOKEN_FILL*cardHeight/2);
+		translate(boardXOffset, boardYOffset);
+			Card[][] curBoard = board.getBoard();//store the current board so that the board doesn't have to be fetched again.
+			for(int i = 0; i < 10; i++){
+				for ( int j = 0 ; j < 7 ; j++ ) {
+					if( (i % 2 == 0) != (j % 2 == 0)) fill(BOARD_DARK); //alternating colours
+					else fill(BOARD_LIGHT);
+					rect(i*tileWidth, j*tileHeight , tileWidth, tileHeight);
+					if(curBoard[i][j] != null) {
+						Card tmpCard = curBoard[i][j];
+						if(tmpCard.player == playerOne) {
+							if(index == 0) fill(PLAYER0COLOUR);
+							else fill(PLAYER1COLOUR);
+						}else{
+							if(index == 0) fill(PLAYER1COLOUR);
+							else fill(PLAYER0COLOUR);
+						}					
+						ellipse(((float) 0.5 + i)*tileWidth, ((float) 0.5 + j)*tileHeight, tileWidth, tileHeight);
+						image(loadImage(tmpCard.TOKEN),(i + (1 - TOKEN_FILL)/2)*tileWidth, (j + (1 - TOKEN_FILL)/2)*tileHeight , TOKEN_FILL*tileWidth, TOKEN_FILL*tileHeight);
+					}
 				}
 			}
-		}
+		translate(-boardYOffset, -boardYOffset);
 	}
 
 	/**
