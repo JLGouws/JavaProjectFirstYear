@@ -421,7 +421,7 @@ public class Game extends GraphicsHandler {
 					}
 				}
 			}
-		translate(boardXOffset, boardYOffset);
+		translate(-boardXOffset, -boardYOffset);
 	}
 
 	/**
@@ -479,7 +479,7 @@ public class Game extends GraphicsHandler {
 					}
 				}
 			}
-		translate(-boardYOffset, -boardYOffset);
+		translate(-boardXOffset, -boardYOffset);
 	}
 
 	/**
