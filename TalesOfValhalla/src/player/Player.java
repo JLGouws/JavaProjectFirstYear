@@ -98,8 +98,10 @@ public class Player implements Serializable{
 	 * @return Returns if the move was valid.
 	 */
 	public boolean removeManaAndGetValid(int mana){
-		this.mana = this.mana - mana >= 0 ? this.mana - mana : mana;
-		return this.mana - mana >= 0;
+		if (this.mana - mana >= 0){
+			this.mana -= mana;
+			return true;
+		}else return false;
 	}
 
 	/**

@@ -137,8 +137,8 @@ public class Game extends GraphicsHandler {
 			if(!isOnBoard() && cardSelected){//cardSelected && mouseY > height - cardHeight/2 && mouseX > width/4 && mouseX < 3*width/4){//was a card released back to the cards
 				replaceCard();//the card must be replaced
 			}else if (cardSelected && isOnBoard()){
-				int x = (int) (mouseX - boardXOffset - selectedCardXoffset)/(cardWidth);
-				int y = (int) (mouseY - boardYOffset - selectedCardYoffset - downShift)/(cardHeight/2);
+				int x = (int) ((mouseX - boardXOffset - selectedCardXoffset)/(tileWidth));
+				int y = (int) ((mouseY - boardYOffset - selectedCardYoffset - downShift)/(tileHeight));
 				if(curCard instanceof cards.Avatar && x != 0 && playerOne == players[0]){
 					replaceCard();
 					return;
@@ -216,8 +216,8 @@ public class Game extends GraphicsHandler {
 	 * Handles the selection of a token
 	 */
 	private void handleTokenSelection(){
-		this.xTokenSelected = (int) mouseX/(cardWidth) - 1;
-		this.yTokenSelected = (int) (mouseY - downShift)/(cardHeight/2);
+		this.xTokenSelected = (int) ((mouseX - boardXOffset)/tileWidth);
+		this.yTokenSelected = (int) ((mouseY - boardYOffset - downShift)/(tileHeight));
 		Card selectedToken = board.getBoard()[xTokenSelected][yTokenSelected];
 		if(selectedToken instanceof cards.Avatar){//is this an Avatar
 			selectedAvatar = (cards.Avatar) selectedToken;//convert the card to an avatar.
@@ -231,7 +231,7 @@ public class Game extends GraphicsHandler {
 	 * Handles the movement of a card on the board.
 	 */
 	private void handleTokenMove(){
-		int x = (int) mouseX/(cardWidth) - 1, y = (int) (mouseY - downShift)/(cardHeight/2), dx = Math.abs(this.xTokenSelected - x), dy = Math.abs(this.yTokenSelected - y);
+		int x = (int) ((mouseX - boardXOffset)/(tileWidth)), y = (int) ((mouseY - boardYOffset- downShift)/(tileHeight)), dx = Math.abs(this.xTokenSelected - x), dy = Math.abs(this.yTokenSelected - y);
 		Card selectedToken = board.getBoard()[this.xTokenSelected][this.yTokenSelected];
 		int cost = ((cards.Avatar) selectedToken).MANA_MOVE_COST * (dx + dy);
 		if(selectedToken instanceof cards.Avatar && dx + dy <= ((cards.Avatar) selectedToken).MAX_MOVE && players[index].removeManaAndGetValid(cost)){//is this move valid?
@@ -410,23 +410,25 @@ public class Game extends GraphicsHandler {
 		PFont font = createFont("Dialog.plain", cardWidth/8);
 		textFont(font);
 		textAlign(CENTER, CENTER);
-		for (int i = -selectedAvatar.MAX_MOVE; i <= selectedAvatar.MAX_MOVE; i++ ) {
-			if(0 <= this.xTokenSelected + i && this.xTokenSelected + i < 10)for (int j = -selectedAvatar.MAX_MOVE + Math.abs(i) ; j <= selectedAvatar.MAX_MOVE - Math.abs(i); j++ ) {
-				fill(0x88888888);
-				if(0 <= this.yTokenSelected + j && this.yTokenSelected + j < 7 && !(i == 0 && j == 0) && board.getBoard()[this.xTokenSelected + i][this.yTokenSelected + j] == null){
-					ellipse((this.xTokenSelected + 1 + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight  + tileHeight/2, tileWidth/2, tileHeight/2);//should this be drawn?
-					fill(0xFF001399);
-					text(selectedAvatar.MANA_MOVE_COST * (Math.abs(j) + Math.abs(i)), (this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, (this.yTokenSelected + j) * cardHeight/2  + cardHeight/4);
+		translate(boardXOffset, boardYOffset);
+			for (int i = -selectedAvatar.MAX_MOVE; i <= selectedAvatar.MAX_MOVE; i++ ) {
+				if(0 <= this.xTokenSelected + i && this.xTokenSelected + i < 10)for (int j = -selectedAvatar.MAX_MOVE + Math.abs(i) ; j <= selectedAvatar.MAX_MOVE - Math.abs(i); j++ ) {
+					fill(0x88888888);
+					if(0 <= this.yTokenSelected + j && this.yTokenSelected + j < 7 && !(i == 0 && j == 0) && board.getBoard()[this.xTokenSelected + i][this.yTokenSelected + j] == null){
+						ellipse((this.xTokenSelected + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight  + tileHeight/2, tileWidth/2, tileHeight/2);//should this be drawn?
+						fill(0xFF001399);
+						text(selectedAvatar.MANA_MOVE_COST * (Math.abs(j) + Math.abs(i)), (this.xTokenSelected + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight + tileHeight/2);
+					}
 				}
 			}
-		}
+		translate(boardXOffset, boardYOffset);
 	}
 
 	/**
 	 * Draws the option squares that avatar can move to.
 	 */
 	private void drawAvatarAttack(){
-		fill(0x33FF0000);
+		fill(0x88FF0000);
 		for (int i = -selectedAvatar.RANGE; i <= selectedAvatar.RANGE; i++ ) {
 			if(0 <= this.xTokenSelected + i && this.xTokenSelected + i < 10)for (int j = -selectedAvatar.RANGE + Math.abs(i) ; j <= selectedAvatar.RANGE - Math.abs(i); j++ ) {
 				if(0 <= this.yTokenSelected + j && this.yTokenSelected + j < 7 && !(i == 0 && j == 0) && board.getBoard()[this.xTokenSelected + i][this.yTokenSelected + j] != null){
