@@ -188,7 +188,7 @@ public class Menu extends GraphicsHandler{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		int centerX = screenSize.width/2;
 		int centerY = screenSize.height/2;*/
-		PImage curCardImage = loadImage("imagedata/title/proper.png");// this is the code changed ( path , but relative addressing "imagedata/title/")
+		PImage curCardImage = loadImage("imagedata/title/title.png");// this is the code changed ( path , but relative addressing "imagedata/title/")
 		image(curCardImage,  - windowWidth/4, - windowHeight/((float) 1.75) , windowWidth / 2, windowHeight / 3);  // this is the code changed  (curCardImage, x, y, width, height) set conditions are ( CENTER - 450, CENTER - 300, windowwidth / 2, windowheight / 3)
 	}
 
