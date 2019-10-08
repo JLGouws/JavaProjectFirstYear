@@ -24,7 +24,7 @@ public class Game extends GraphicsHandler {
 	public int index;
 	private Menu menu;
 	private int height, width, xTokenSelected, yTokenSelected,cardWidth, cardHeight;//environment variables
-	private Player playerOne, playerTwo;
+	protected Player playerOne, playerTwo;
 	private ArrayList<PImage> playerOneCards = new ArrayList<>(), playerTwoCards = new ArrayList<>();
 	private float cardXpos, cardRot, downShift = 20, selectedCardXoffset, selectedCardYoffset, nexusRot = 0, nexusRotSpeed = (float) 0.1;
 	private PImage curCardImage;
@@ -37,6 +37,7 @@ public class Game extends GraphicsHandler {
 	 */
 	public Game(){
 		if(running.size() == 1){
+			index = 0;
 			playerOne = players[0];
 			playerTwo = players[1];
 		} else if(running.size() == 2){
@@ -54,6 +55,7 @@ public class Game extends GraphicsHandler {
 	public Game(Player player){
 		players[1] = player;
 		if(running.size() == 1){
+			index = 0;
 			playerOne = players[0];
 			playerTwo = players[1];
 		} else if(running.size() == 2){
@@ -74,7 +76,7 @@ public class Game extends GraphicsHandler {
 	}
 
 	/**
-	 *Setup method runs before draw method to set variables in the class.
+	 * Setup method runs before draw method to set variables in the class.
 	 */
 	public void setup(){
 		//set up environment variables
@@ -113,7 +115,7 @@ public class Game extends GraphicsHandler {
 				selectCard(length, cardOffset);
 			} else if(isOnBoard() && !tokenSelected && !cardSelected){
 				handleTokenSelection();
-			} else if(isOnBoard() && tokenSelected){
+			} else if((isOnBoard() || ((boardYOffset + 3.5 * tileHeight - cardWidth < mouseY && mouseY < boardYOffset + 3.5 * tileHeight + cardWidth) && (mouseX < boardXOffset || mouseX > super.width - boardXOffset ) )) && tokenSelected ){
 				handleTokenMove();
 			}
 			if(mouseX > super.width - cardWidth && mouseY > super.height - cardHeight) handleCardDrawn(); 
@@ -145,8 +147,9 @@ public class Game extends GraphicsHandler {
 				}else if(curCard instanceof cards.Avatar && x != 9 && playerOne == players[1]){
 					replaceCard();
 					return;
-				}
-				handlePlayCard(x, y);
+				} if(playerOne.removeManaAndGetValid(((cards.Avatar) curCard).MANA_COST)){
+					handlePlayCard(x, y);
+				} else replaceCard();
 			}
 		}
 	}
@@ -157,7 +160,10 @@ public class Game extends GraphicsHandler {
 	private void transitionToMenu(){
 		menu.revive();//revive the menu
 		surface.setVisible(false);//make the display go away
-		noLoop();//stop draw
+		((Game)running.get(1)).kill();
+		((Game)running.get(2)).kill();
+		running.remove(1);
+		running.remove(1);
 	}
 
 	/**
@@ -192,6 +198,8 @@ public class Game extends GraphicsHandler {
 	 * @param y the y position of the board that the card will be added to.
 	 */
 	protected void handlePlayCard(int x, int y){
+		curCard.xPos = x; /* set the coordinates of the card position */
+		curCard.yPos = y;
 		board.addCard(curCard, x, y);
 		cardSelected = false;
 		updateBoard[0] = true;
@@ -206,7 +214,26 @@ public class Game extends GraphicsHandler {
 	 * @param y the y position of the board that the card will be added to.
 	 */
 	protected void handlePlayCard(int i, int x, int y){
+		curCard.xPos = x; /* set the coordinates of the card position */
+		curCard.yPos = y;
 		board.addCard(curCard, x, y);
+		cardSelected = false;
+		updateBoard[0] = true;
+		updateBoard[1] = true;
+	}
+
+	/**
+	 * Plays a given card from the board to the hand.
+	 *
+	 * @param c the card that will be played
+	 * @param x the x position of the board that the card will be added to.
+	 * @param y the y position of the board that the card will be added to.
+	 */
+	protected void handlePlayCard(Card c, int x, int y){
+		c.xPos = x; /* set the coordinates of the card position */
+		c.yPos = y;
+		board.addCard(c, x, y);
+		playerOne.getHand().removeCard(c);
 		cardSelected = false;
 		updateBoard[0] = true;
 		updateBoard[1] = true;
@@ -219,11 +246,14 @@ public class Game extends GraphicsHandler {
 		this.xTokenSelected = (int) ((mouseX - boardXOffset)/tileWidth);
 		this.yTokenSelected = (int) ((mouseY - boardYOffset - downShift)/(tileHeight));
 		Card selectedToken = board.getBoard()[xTokenSelected][yTokenSelected];
-		if(selectedToken instanceof cards.Avatar){//is this an Avatar
-			selectedAvatar = (cards.Avatar) selectedToken;//convert the card to an avatar.
-			tokenSelected = true;
-		}else if (selectedToken == null){
-			tokenSelected = false;
+		System.out.println(selectedToken.player);
+		if (selectedToken.player == playerOne){
+			if(selectedToken instanceof cards.Avatar){//is this an Avatar
+				selectedAvatar = (cards.Avatar) selectedToken;//convert the card to an avatar.
+				tokenSelected = true;
+			}else if (selectedToken == null){
+				tokenSelected = false;
+			}
 		}
 	}
 
@@ -234,13 +264,18 @@ public class Game extends GraphicsHandler {
 		int x = (int) ((mouseX - boardXOffset)/(tileWidth)), y = (int) ((mouseY - boardYOffset- downShift)/(tileHeight)), dx = Math.abs(this.xTokenSelected - x), dy = Math.abs(this.yTokenSelected - y);
 		Card selectedToken = board.getBoard()[this.xTokenSelected][this.yTokenSelected];
 		int cost = ((cards.Avatar) selectedToken).MANA_MOVE_COST * (dx + dy);
-		if(selectedToken instanceof cards.Avatar && dx + dy <= ((cards.Avatar) selectedToken).MAX_MOVE && players[index].removeManaAndGetValid(cost)){//is this move valid?
+		if((boardYOffset + 3.5 * tileHeight - cardWidth < mouseY && mouseY < boardYOffset + 3.5 * tileHeight + cardWidth) && (mouseX < boardXOffset || mouseX > super.width - boardXOffset )){
+			if(mouseX <= boardXOffset) handleAvatarAttack(selectedToken,-1, 3);
+			else handleAvatarAttack(selectedToken, 10, 3);
+		}else if(0 <= x && x < 10 && 0 <= y && y < 7 && selectedToken instanceof cards.Avatar && 0 < dx + dy && dx + dy <= ((cards.Avatar) selectedToken).MAX_MOVE && players[index].removeManaAndGetValid(cost) && this.board.getBoard()[x][y] == null){//is this move valid?
 			this.board.getBoard()[x][y] = selectedToken;
 			this.board.getBoard()[this.xTokenSelected][this.yTokenSelected] = null;
 			updateBoard[0] = true;
 			updateBoard[1] = true;
-			this.tokenSelected = false;
+		} else if(this.board.getBoard()[x][y] != null){
+			handleAvatarAttack(selectedToken, x, y);
 		}
+		this.tokenSelected = false;
 	}
 
 	/**
@@ -252,6 +287,32 @@ public class Game extends GraphicsHandler {
 		drawnCardSelected = true;
 		this.selectedCardXoffset = mouseX - (super.width - cardWidth);
 		this.selectedCardYoffset = mouseY - (super.height - cardHeight);
+	}
+
+	/**
+	 * Makes an avatar do damage.
+	 *
+	 * @param attacker The avatar that is attacking anather avatar on the board.
+	 * @param x the x position on the board that the attacker will attack.
+	 * @param y the y position on the board that the attacker will attack.
+	 */
+	private void handleAvatarAttack(Card attacker, int x, int y){
+		if(this.playerOne == players[0] && (10 - this.xTokenSelected) + Math.abs(3 - this.yTokenSelected) <= this.selectedAvatar.RANGE){
+			if(x == 10 && y == 3) players[1].health -= ((cards.Avatar) attacker).DAMAGE;
+		}else if(this.playerOne == players[1] && (this.xTokenSelected ) + Math.abs(3 - this.yTokenSelected) <= this.selectedAvatar.RANGE){
+			if(x == -1 && y == 3) players[0].health -= ((cards.Avatar) attacker).DAMAGE;
+		} else{
+			if (this.board.getBoard()[x][y] instanceof cards.Avatar){
+				cards.Avatar attacked = (cards.Avatar) this.board.getBoard()[x][y];//get the attacked avatar
+				attacked.health -= ((cards.Avatar) attacker).DAMAGE;
+				if (attacked.health <= 0){
+					board.getBoard()[x][y] = null;
+					this.updateBoard[0] = true;//the board must be updated.
+					this.updateBoard[1] = true;
+				}
+			}
+		}
+		this.tokenSelected = false;//yes this is reduntant
 	}
 
 	/**
@@ -314,21 +375,23 @@ public class Game extends GraphicsHandler {
 		nexusRot = (nexusRot + nexusRotSpeed) % (2*PI);
 		PImage nexusImage = loadImage("imagedata/nexusImage/funkySpiral.png");
 		//draw player one nexus
-		translate(cardWidth/2, ((float) 3.5) * cardHeight/2);
+		translate(0, boardYOffset);//x is alligned, but y is not.
+		translate(cardWidth/2, ((float) 3.5) * tileHeight);
 		rotate(nexusRot);
 		fill(PLAYER0COLOUR);
 		ellipse(0, 0, cardWidth, cardWidth);
 		image(nexusImage, -cardWidth/2, -cardWidth/2, cardWidth, cardWidth);
 		rotate(-nexusRot);
-		translate(-cardWidth/2, -((float) 3.5) * cardHeight/2);
+		translate(-cardWidth/2, -((float) 3.5) * tileHeight);
 		//draw player two nexus
-		translate(width - cardWidth/2, ((float) 3.5) * cardHeight/2);
+		translate(width - cardWidth/2, ((float) 3.5) * tileHeight);
 		rotate(nexusRot);
 		fill(PLAYER1COLOUR);
 		ellipse(0, 0, cardWidth, cardWidth);
 		image(nexusImage, -cardWidth/2, -cardWidth/2, cardWidth, cardWidth);
 		rotate(-nexusRot);
-		translate(-(width - cardWidth/2), -((float) 3.5) * cardHeight/2);
+		translate(-(width - cardWidth/2), -((float) 3.5) * tileHeight);
+		translate(0, -boardYOffset);
 	}
 	
 	/**
@@ -432,8 +495,24 @@ public class Game extends GraphicsHandler {
 		for (int i = -selectedAvatar.RANGE; i <= selectedAvatar.RANGE; i++ ) {
 			if(0 <= this.xTokenSelected + i && this.xTokenSelected + i < 10)for (int j = -selectedAvatar.RANGE + Math.abs(i) ; j <= selectedAvatar.RANGE - Math.abs(i); j++ ) {
 				if(0 <= this.yTokenSelected + j && this.yTokenSelected + j < 7 && !(i == 0 && j == 0) && board.getBoard()[this.xTokenSelected + i][this.yTokenSelected + j] != null){
-					ellipse((this.xTokenSelected + 1 + i) * cardWidth + cardWidth/2, (this.yTokenSelected + j) * cardHeight/2  + cardHeight/4, cardWidth/2, cardWidth/2);//should this be drawn?
+					translate(boardXOffset, boardYOffset);
+					ellipse((this.xTokenSelected + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight  + tileHeight/2, tileWidth/2, tileHeight/2);//should this be drawn?
+					translate(-boardXOffset, -boardYOffset);
 				}
+			}
+		} if(this.playerOne == players[0]){
+			if((10 - this.xTokenSelected) + Math.abs(3 - this.yTokenSelected) <= this.selectedAvatar.RANGE){
+				fill(0x88FF0000);
+				translate(width - cardWidth/2, boardYOffset + ((float) 3.5) * tileHeight);
+				ellipse(0, 0, tileWidth/2, tileHeight/2);
+				translate(-(width - cardWidth/2), -(boardYOffset + ((float) 3.5) * tileHeight));
+			}
+		}else if(this.playerOne == players[1]){
+			if((this.xTokenSelected + 1) + Math.abs(3 - this.yTokenSelected) <= this.selectedAvatar.RANGE){
+				fill(0x88FF0000);
+				translate(cardWidth/2, boardYOffset + ((float) 3.5) * tileHeight);
+				ellipse(0, 0, tileWidth/2, tileHeight/2);
+				translate( - cardWidth/2, -(boardYOffset + ((float) 3.5) * tileHeight));
 			}
 		}
 	}
@@ -474,7 +553,7 @@ public class Game extends GraphicsHandler {
 							if(index == 0) fill(PLAYER1COLOUR);
 							else fill(PLAYER0COLOUR);
 						}					
-						ellipse(((float) 0.5 + i)*tileWidth, ((float) 0.5 + j)*tileHeight, tileWidth, tileHeight);
+						ellipse(((float) 0.5 + i)*tileWidth, ((float) 0.5 + j)*tileHeight, 3*tileWidth/4, 13*tileHeight/14);
 						image(loadImage(tmpCard.TOKEN),(i + (1 - TOKEN_FILL)/2)*tileWidth, (j + (1 - TOKEN_FILL)/2)*tileHeight , TOKEN_FILL*tileWidth, TOKEN_FILL*tileHeight);
 					}
 				}
@@ -517,6 +596,14 @@ public class Game extends GraphicsHandler {
 	private void drawDeck(){
 		PImage cardImage = loadImage(CARD_BACK_IMAGE_URI);
 		if(players[index].canDraw())image(cardImage, super.width - cardWidth, super.height - cardHeight, cardWidth, cardHeight);
+	}
+
+	/**
+	 * Method that causes this object to close the object from drawing.
+	 */
+	public void kill(){
+		noLoop();
+		surface.setVisible(false);
 	}
 
 	/**

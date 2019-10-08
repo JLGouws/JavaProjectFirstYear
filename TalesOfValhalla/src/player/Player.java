@@ -2,11 +2,13 @@ package player;
 
 import deck.*;
 
+import card.Card;
+
 import java.io.Serializable;
 
 public class Player implements Serializable{
 
-	static private final int MANA_CARD_DRAW_COST = 40; 
+	static public final int MANA_CARD_DRAW_COST = 40; 
 	private final String NAME;
 	public int mana, health, max_health, max_mana;
 	private Deck deck;
@@ -39,6 +41,15 @@ public class Player implements Serializable{
 		max_mana = 200;
 		mana = 200;
 		health = 20;
+	}
+
+	/**
+	 * Accessor method for the mana field.
+	 *
+	 * @return The mana that the player has.
+	 */
+	public int getMana(){
+		return this.mana;
 	}
 	
 	/**
@@ -111,5 +122,24 @@ public class Player implements Serializable{
 	 */
 	public String toString(){
 		return this.NAME;
+	}
+
+	/**
+	 * Helper method for the AI
+	 * 
+	 * @return The card that has the lowest mana cost of the cards in the player's hand.
+	 */
+	public Card getCheapestCard(){
+		return hand.getCards().stream().reduce((x,y) -> x.PLAY_MANA_COST <= y.PLAY_MANA_COST ? x : y ).get();//get the lowest cost of a card in the player's hand.
+	}
+
+	/**
+	 * Helper method for the AI
+	 * 
+	 * @return The mana cost of the cheapest card in the player's hand.
+	 */
+	public int getCheapest(){
+		if(hand.getCards().size() > 0 )	return hand.getCards().stream().reduce((x,y) -> x.PLAY_MANA_COST <= y.PLAY_MANA_COST ? x : y ).get().PLAY_MANA_COST;//get the lowest cost of a card in the player's hand.
+		return 2 * this.mana;
 	}
 }
