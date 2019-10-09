@@ -201,6 +201,29 @@ public class aiCore extends Game {
 	}
 
 	/**
+	 * Method that looks for targets.
+	 *
+	 * @param c the card that is doing the attacking. 
+	 * @param x the x coordinate of the card.
+	 * @param y the y coordinate of the card.
+	 * 
+	 * @return An integer array of the target card.
+	 */
+	private int[] lookForTarget(Card c, int x , int y){
+		if(c instanceof Avatar){
+			Avatar looker = (Avatar) c;
+			for (int i = -looker.RANGE; i <= looker.RANGE; i++ ) {
+			if(0 <= x + i && x + i < 10)for (int j = -looker.RANGE + Math.abs(i) ; j <= looker.RANGE - Math.abs(i); j++ ) {
+				if(0 <= y + j && y + j < 7 && !(i == 0 && j == 0) && board.getBoard()[x + i][y + j] != null){
+					if (board.getBoard()[x+i][y+j].player != playerOne) return new int[] {x + i, y + j};
+				}
+			}
+		} 
+		}
+		return null;
+	}
+
+	/**
 	 * Handles the movement of a card on the board. This is only intended for AI use.
 	 * This method is however left here, as it might find use here latere and is similar to the other methods of this class.
 	 *
@@ -212,15 +235,21 @@ public class aiCore extends Game {
 	 */
 	protected void handleTokenMove(Card c, int x, int y, int dx, int dy){
 		int cost = ((cards.Avatar) c).MANA_MOVE_COST * (dx + dy);
-		if(0 <= x + dx && x + dx < 10 && 0 <= y + dy && y + dy < 7 && c instanceof cards.Avatar && 0 < dx + dy && dx + dy <= ((cards.Avatar) c).MAX_MOVE && players[index].removeManaAndGetValid(cost) && this.board.getBoard()[x + dx][y + dy] == null){//is this move valid?
+		int[] coords = lookForTarget(c, x, y);
+		if(coords != null && this.board.getBoard()[coords[0]][coords[1]] != null){
+			System.out.println(c);
+			System.out.println("x" + x);
+			System.out.println("y" + y);
+			System.out.println("Target x" + coords[0]);
+			System.out.println("Target y" + coords[1]);
+			handleAvatarAttack(c, x, y, coords[0], coords[1]);
+		}else if(0 <= x + dx && x + dx < 10 && 0 <= y + dy && y + dy < 7 && c instanceof cards.Avatar && 0 < dx + dy && dx + dy <= ((cards.Avatar) c).MAX_MOVE && this.board.getBoard()[x + dx][y + dy] == null && players[index].removeManaAndGetValid(cost)){//is this move valid?
 			this.board.getBoard()[x + dx][dy + y] = c;
 			this.board.getBoard()[x][y] = null;
 			updateBoard[0] = true;
 			updateBoard[1] = true;
 			c.xPos += dx; /* change the position of the card */
 			c.yPos += dy;
-		} else if(this.board.getBoard()[x + dx][y + dy] != null){
-			handleAvatarAttack(c, x, y, x + dx, y + dy);
 		}
 	}
 
@@ -236,12 +265,13 @@ public class aiCore extends Game {
 
 		}else if(this.playerOne == players[1] && x + Math.abs(3 - y) <= ((Avatar) attacker).RANGE){
 		} else{
-			if (this.board.getBoard()[x][y] instanceof cards.Avatar){
+			if (this.board.getBoard()[targetX][targetY] instanceof cards.Avatar){
 				cards.Avatar attacked = (cards.Avatar) this.board.getBoard()[targetX][targetY];//get the attacked avatar
-				if(attacked.player != attacked.player){
+				if(attacked.player != attacker.player && playerOne.removeManaAndGetValid(((cards.Avatar) attacker).MANA_ATTACK_COST)){
+					System.out.println("do damage");
 					attacked.health -= ((cards.Avatar) attacker).DAMAGE;
 					if (attacked.health <= 0){
-						board.getBoard()[x][y] = null;
+						board.getBoard()[targetX][targetY] = null;
 						this.updateBoard[0] = true;//the board must be updated.
 						this.updateBoard[1] = true;
 					}

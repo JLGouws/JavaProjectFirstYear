@@ -6,9 +6,9 @@ import player.Player;
 
 import java.io.Serializable;
 
-public class Golem extends Avatar implements Serializable {
+final public class Golem extends Avatar implements Serializable {
 	
-	private static final int HEALTH = 30, DAMAGE = 1, RANGE = 1, MAX_MOVE = 1, MANA_COST = 100, MANA_ATTACK_COST = 3;
+	private static final int HEALTH = 7, DAMAGE = 7, RANGE = 1, MAX_MOVE = 1, MANA_COST = 7, MANA_ATTACK_COST = 3;
 	private static final String uri = "imagedata/cards/avatars/golemCard.png", token = "imagedata/tokens/avatars/golemToken.png";
 	
 	public Golem(Player player){

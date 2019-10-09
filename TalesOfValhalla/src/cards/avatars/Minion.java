@@ -6,9 +6,9 @@ import player.Player;
 
 import java.io.Serializable;
 
-public class Minion extends Avatar implements Serializable{
+final public class Minion extends Avatar implements Serializable{
 	
-	private static final int HEALTH = 3, DAMAGE = 1, RANGE = 1, MAX_MOVE = 1, MANA_COST = 10, MANA_ATTACK_COST = 1;
+	private static final int HEALTH = 1, DAMAGE = 1, RANGE = 1, MAX_MOVE = 1, MANA_COST = 1, MANA_ATTACK_COST = 1;
 	private static final String uri = "imagedata/cards/avatars/minionCard.png", token = "imagedata/tokens/avatars/minionToken.png";
 	
 	public Minion(Player player){

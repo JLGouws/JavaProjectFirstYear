@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 public class Player implements Serializable{
 
-	static public final int MANA_CARD_DRAW_COST = 40; 
+	static public final int MANA_CARD_DRAW_COST = 2; 
 	private final String NAME;
 	public int mana, health, max_health, max_mana;
 	private Deck deck;
@@ -24,9 +24,9 @@ public class Player implements Serializable{
 		deck = new Deck(this);
 		hand = new Hand(deck);
 		max_health = 20;
-		max_mana = 200;
-		mana = 200;
-		health = 20;
+		max_mana = 12;
+		mana = max_mana;
+		health = max_health;
 	}
 
 	/**
@@ -38,9 +38,9 @@ public class Player implements Serializable{
 		deck = new Deck(this);
 		hand = new Hand(deck);
 		max_health = 20;
-		max_mana = 200;
-		mana = 200;
-		health = 20;
+		max_mana = 12;
+		mana = max_mana;
+		health = max_health;
 	}
 
 	/**
@@ -141,5 +141,14 @@ public class Player implements Serializable{
 	public int getCheapest(){
 		if(hand.getCards().size() > 0 )	return hand.getCards().stream().reduce((x,y) -> x.PLAY_MANA_COST <= y.PLAY_MANA_COST ? x : y ).get().PLAY_MANA_COST;//get the lowest cost of a card in the player's hand.
 		return 2 * this.mana;
+	}
+
+	/**
+	 * Accessor method for the player's deck.
+	 *
+	 * @return The players deck.
+	 */
+	public Deck getDeck(){
+		return this.deck;
 	}
 }

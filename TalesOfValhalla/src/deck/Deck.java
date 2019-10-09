@@ -93,6 +93,16 @@ public class Deck implements Serializable {
 		return returnable;
 	}
 
+	/**
+	 * Returns the given card to the first empty position of the deck.
+	 *
+	 * @param c The card that will be returned to the deck.
+	 */
+	public void returnCard(Card c){
+		int i = 0;
+		for (; i < DECK_SIZE ; i++ ) if(cards[i] == null) break;//find first empty spot in cards.
+		cards[i] = c;
+	}
 	
 	/*protected void randomShuffle(){
 		int random; //stores a temporary random number.
@@ -306,7 +316,7 @@ public class Deck implements Serializable {
 	 *
 	 * Returns the cards in the deck
 	 */
-	protected Card[] getCards(){
+	public Card[] getCards(){
 		return cards;
 	}
 
