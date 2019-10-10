@@ -7,7 +7,9 @@ CDS = src/cards
 BIN = -d bin 
 ALLLIB = bin:lib/core.jar
 
-run: 
+run:
+	#ON windows:
+	#java -cp "lib/core.jar;bin" main.Backbone 
 	$(JVM) -cp $(ALLLIB) main.Backbone
 
 runDeck: 
