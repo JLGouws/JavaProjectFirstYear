@@ -88,7 +88,6 @@ public class EditDeck extends MainMenu {
 		if(onScreen[0]) drawOptionsBuilder();
 		if(onScreen[1]) startrecord1();
 		if(onScreen[2]) startrecord2();
-		System.out.println(selected);
 		//setUpDeck();
 		//drawTitle();
 	}

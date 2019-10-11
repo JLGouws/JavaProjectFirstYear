@@ -26,6 +26,13 @@ public class GameOptions extends EditDeck {
 		fill(0,0,255);
 		textFont(font);
 		text("Play versus A.I.", 0, windowHeight/8);
+
+		if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 + windowHeight/4 - 42 && mouseY < 2*windowHeight/3 + windowHeight/4 + 42) fill(0, 0, 0);
+		else fill(255,255,255);
+		ellipse(0 ,windowHeight/4 ,300 ,74 );
+		fill(0,0,255);
+		textFont(font);
+		text("Return to Main Menu", 0, windowHeight/4);
 	}
 
 	/**
@@ -44,6 +51,10 @@ public class GameOptions extends EditDeck {
 			PApplet.main("graphics.game.Game");
 			surface.setVisible(false);
 			noLoop();
+		}
+		if(mouseX < windowWidth/2 + 150 && mouseX > windowWidth/2 - 150 && mouseY > 2*windowHeight/3 + windowHeight/4 - 42 && mouseY < 2*windowHeight/3 + windowHeight/4 + 42){
+			screenOn[0] = true;
+			screenOn[1] = false;
 		}
 	}	
 }

@@ -15,7 +15,7 @@ public class Menu extends GraphicsHandler{
 
 	static final private String ICON_PATH = "imagedata/tokens/avatars/archerToken.png";//TODO: change the icon
 	protected int cols, rows, platformWidth, platformHeight, windowWidth, windowHeight, desktopXOffset, desktopYOffset, desktopMouseX = 0, desktopMouseY = 0;
-	protected float focalLength = 1, flying = 0, scl;
+	protected float focalLength = 1, depth = 0, scl;
 	protected float[] coords = new float[3], rotCoords; // 3d coordinates
 	protected float[][] terrain;//height of each point
 	protected boolean moveScreen = false;
@@ -82,8 +82,6 @@ public class Menu extends GraphicsHandler{
 		int dx = mouseX - desktopMouseX + desktopXOffset;//how much has the mouse moved by in the x direction?
 		int dy = mouseY - desktopMouseY + desktopYOffset;//how much has the mouse moved by in the y direction?
 		int dxsmall = 0, dysmall =0 ;
-		System.out.println(dx + " " + dy);
-		System.out.println();
 		while (dxsmall <= Math.abs(dx) || dysmall <= Math.abs(dy) ){//smoothing
 			surface.setLocation(desktopXOffset, desktopYOffset);
 			if(dxsmall < Math.abs(dx)){
@@ -135,9 +133,9 @@ public class Menu extends GraphicsHandler{
 	 * Draws the terrain in the background.
 	 */
 	protected void drawTerrain(){
-		flying -= 0.1;
+		depth -= 0.1;
 
-		float yoff = flying;
+		float yoff = depth;
 		for (int y = 0; y < rows; y++) {
 		float xoff = 0;
 	    		for (int x = 0; x < cols; x++) {
