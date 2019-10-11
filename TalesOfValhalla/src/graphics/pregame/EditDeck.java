@@ -18,6 +18,9 @@ import java.util.*;
 
 import player.Player;
 
+/**
+ * @author Thabo Sifumba
+ */
 public class EditDeck extends MainMenu {
 	Player player1= new Player(), player2 = new Player();
 	private Card[] temp = new Card [5];
@@ -193,7 +196,7 @@ public class EditDeck extends MainMenu {
 	} // method should be for 5 base cards selected 
 	
 	protected void mousePlace(){
-		cards[(int) (mouseX/(windowWidth/30))] = selected;
+		cards[(int) (mouseX/(windowWidth/30))] = selected.getNew();
 		selected = null;
 	} // method should be for cardsss 30  of them , to take on the value of temp from above method 
 	
