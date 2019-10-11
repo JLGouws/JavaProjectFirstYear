@@ -33,6 +33,7 @@ public class Menu extends GraphicsHandler{
 	 * Creates the display
 	 */
 	public void setup(){
+		surface.setTitle("Tales Of Valhalla");
 		textAlign(CENTER, CENTER);
 		screenOn[0] = true;
 		//printArray(PFont.list());
@@ -131,6 +132,7 @@ public class Menu extends GraphicsHandler{
 
 	/**
 	 * Draws the terrain in the background.
+	 * <p> This code has been modified from Daniel Shiffman of The Coding Train on youtube. </p>
 	 */
 	protected void drawTerrain(){
 		depth -= 0.1;

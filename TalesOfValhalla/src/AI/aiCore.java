@@ -84,7 +84,7 @@ public class aiCore extends Game {
 			if(card != null){
 				if(card instanceof Avatar && card.xPos == selectRank){
 					int moveCost = ((Avatar) card).MANA_MOVE_COST;
-					if(lowestManaMoveCost == -1) lowestManaMoveCost = moveCost;
+					if(lowestManaMoveCost == -1 || lowestManaMoveCard == null) lowestManaMoveCost = moveCost;
 					else if (lowestManaMoveCost > ((Avatar) card).MANA_MOVE_COST) lowestManaMoveCost = moveCost;
 				}
 			}
@@ -102,10 +102,10 @@ public class aiCore extends Game {
 		int selectRank = playerOne == players[0] ? 0 : 9;
 		for (int i = numCardsOnRank.length - 1 ; i >= 0; i--) {
 			if (numCardsOnRank[i] != 0 ) {
-				highestRank = true;
-				if(highestRank && numCardsOnRank[i] >=3 ){
-					return i;
-				}
+				if(highestRank && (numCardsOnRank[i] >= 3)) return i;
+				if(!highestRank && numCardsOnRank[i] >= 3 ) return i;
+				if (!highestRank) highestRank = true;
+				if(i == Math.abs(9 - selectRank)) return i;
 			}
 		}
 		return selectRank;
@@ -122,7 +122,8 @@ public class aiCore extends Game {
 			if(card != null){
 				if(card instanceof Avatar && card.xPos == selectRank){
 					int moveCost = ((Avatar) card).MANA_MOVE_COST;
-					if(lowestManaMoveCost == moveCost) lowestManaMoveCard = card;
+					if (lowestManaMoveCard == null) lowestManaMoveCard = card;
+					else if(lowestManaMoveCost == moveCost && Math.abs(3-lowestManaMoveCard.yPos) > Math.abs(3-card.yPos)) lowestManaMoveCard = card;
 				}
 			}
 		});
@@ -156,9 +157,11 @@ public class aiCore extends Game {
 		if(cheapest != null){
 			if(playerOne == players[0]){
 				if(cheapest.xPos < 9) handleTokenMove(cheapest, cheapest.xPos, cheapest.yPos, 1, 0);
-				else if (cheapest.xPos < 9){
+				else if (cheapest.xPos == 9){
 					if (cheapest.yPos < 3) handleTokenMove(cheapest, cheapest.xPos, cheapest.yPos, 0, 1);
-					else if (cheapest.yPos > 3) handleTokenMove(cheapest, cheapest.xPos, cheapest.yPos, 0, -1);
+					else if (cheapest.yPos > 3) {
+						handleTokenMove(cheapest, cheapest.xPos, cheapest.yPos, 0, -1);
+					}
 					else handleTokenMove(cheapest, cheapest.xPos, cheapest.yPos, 696969, 696969);/* sexy */
 				}		
 			}
@@ -256,6 +259,8 @@ public class aiCore extends Game {
 			updateBoard[1] = true;
 			c.xPos += dx; /* change the position of the card */
 			c.yPos += dy;
+		} else if(this.board.getBoard()[x + dx][y + dy] != null && board.getBoard()[x+dx][y+dy].player == c.player){
+			handleTokenMove(this.board.getBoard()[x + dx][y + dy], x+dx, y+dy, 1, 0);//make space
 		}
 	}
 
@@ -275,14 +280,13 @@ public class aiCore extends Game {
 			if (this.board.getBoard()[targetX][targetY] instanceof cards.Avatar){
 				cards.Avatar attacked = (cards.Avatar) this.board.getBoard()[targetX][targetY];//get the attacked avatar
 				if(attacked.player != attacker.player && playerOne.removeManaAndGetValid(((cards.Avatar) attacker).MANA_ATTACK_COST)){
-					System.out.println("do damage");
 					attacked.health -= ((cards.Avatar) attacker).DAMAGE;
 					if (attacked.health <= 0){
 						board.getBoard()[targetX][targetY] = null;
 						this.updateBoard[0] = true;//the board must be updated.
 						this.updateBoard[1] = true;
 					}
-				}
+				} 
 			}
 		}
 	}
@@ -296,6 +300,7 @@ public class aiCore extends Game {
 		int manaPool = playerOne.getMana();
 		iterations = 0;
 		while (canPlay(cardsPlayed)){
+			lowestManaMoveCard = null;
 			if(playerOne.getHand().getCards().size() == 0) handleAIDrawCard();
 			if(playerOne.getHand().getCards().size() == 0) break;
 			iterations++;

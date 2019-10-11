@@ -21,7 +21,7 @@ public class Game extends GraphicsHandler {
 	static final private double CARD_SPREAD_EXP = 1.2, CARD_ROTATION_EXP = 1.5;
 	static final private float TOKEN_FILL = (float) 0.9;
 	static final private int PLAYER0COLOUR = 0xFF2F74F4, PLAYER1COLOUR = 0xFFFF2800, BOARD_LIGHT = 0xFFFFE066, BOARD_DARK = 0xFF223300;//Don't know what the first FF is for but processing requires it
-	static final private String CARD_BACK_IMAGE_URI= "imagedata/cards/cardBack.png";
+	static final private String CARD_BACK_IMAGE_URI= "imagedata/cards/cardBack.png", ICON_PATH = "imagedata/tokens/avatars/archerToken.png";//TODO: change the icon;
 	static private float tileHeight, tileWidth, boardXOffset, boardYOffset;
 	public int index;
 	private Menu menu;
@@ -81,6 +81,9 @@ public class Game extends GraphicsHandler {
 	 * Setup method runs before draw method to set variables in the class.
 	 */
 	public void setup(){
+		PImage icon = loadImage(ICON_PATH);//create icon
+		surface.setIcon(icon);//change the icon 
+		surface.setTitle("Tales Of Valhalla Game");
 		//set up environment variables
 		height = super.height;
 		width = super.width;
@@ -149,7 +152,7 @@ public class Game extends GraphicsHandler {
 				}else if(curCard instanceof cards.Avatar && x != 9 && playerOne == players[1]){
 					replaceCard();
 					return;
-				} if(playerOne.removeManaAndGetValid(((cards.Avatar) curCard).MANA_COST)){
+				} if(board.getBoard()[x][y] == null && playerOne.removeManaAndGetValid(((cards.Avatar) curCard).MANA_COST)){
 					handlePlayCard(x, y);
 				} else replaceCard();
 			}
@@ -507,7 +510,6 @@ public class Game extends GraphicsHandler {
 	 * Draws the option squares that avatar can move to.
 	 */
 	private void drawAvatarAttack(){
-		fill(0x88FF0000);
 		PFont font = createFont("Dialog.plain", cardWidth/8);
 		textFont(font);
 		textAlign(CENTER, CENTER);
@@ -515,6 +517,7 @@ public class Game extends GraphicsHandler {
 			if(0 <= this.xTokenSelected + i && this.xTokenSelected + i < 10)for (int j = -selectedAvatar.RANGE + Math.abs(i) ; j <= selectedAvatar.RANGE - Math.abs(i); j++ ) {
 				if(0 <= this.yTokenSelected + j && this.yTokenSelected + j < 7 && !(i == 0 && j == 0) && board.getBoard()[this.xTokenSelected + i][this.yTokenSelected + j] != null){
 					translate(boardXOffset, boardYOffset);
+					fill(0x88FF0000);
 					ellipse((this.xTokenSelected + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight  + tileHeight/2, tileWidth/2, tileHeight/2);//should this be drawn?
 					fill(0xFF001399);
 					text(selectedAvatar.MANA_ATTACK_COST, (this.xTokenSelected + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight + tileHeight/2);
@@ -577,8 +580,10 @@ public class Game extends GraphicsHandler {
 						ellipse(((float) 0.5 + i)*tileWidth, ((float) 0.5 + j)*tileHeight, 3*tileWidth/4, 13*tileHeight/14);
 						image(loadImage(tmpCard.TOKEN),(i + (1 - TOKEN_FILL)/2)*tileWidth, (j + (1 - TOKEN_FILL)/2)*tileHeight , TOKEN_FILL*tileWidth, TOKEN_FILL*tileHeight);
 
-						PImage healthImg = loadImage("imagedata/healthImages/" + ((cards.Avatar) tmpCard).health + ".png");/* load the image of the cards health */
-						image(healthImg, (i + (float) 5/6)*tileWidth , (j + (float) 3/4)*tileHeight, tileWidth/6, tileHeight/4);
+						PImage vitalImg = loadImage("imagedata/healthImages/" + ((cards.Avatar) tmpCard).health + ".png");/* load the image of the card's health */
+						image(vitalImg, (i + (float) 5/6)*tileWidth , (j + (float) 3/4)*tileHeight, tileWidth/6, tileHeight/4);
+						vitalImg = loadImage("imagedata/ADImages/" + ((cards.Avatar) tmpCard).DAMAGE + ".png");/* load the image of the card's attack */
+						image(vitalImg, (i + (float) 1/6)*tileWidth , (j + (float) 3/4)*tileHeight, tileWidth/6, tileHeight/4);
 					}
 				}
 			}
