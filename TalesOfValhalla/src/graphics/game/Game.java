@@ -299,10 +299,10 @@ public class Game extends GraphicsHandler {
 	 */
 	private void handleAvatarAttack(Card attacker, int x, int y){
 		if(this.playerOne == players[0] && (10 - this.xTokenSelected) + Math.abs(3 - this.yTokenSelected) <= this.selectedAvatar.RANGE){
-			if(x == 10 && y == 3) players[1].health -= ((cards.Avatar) attacker).DAMAGE;
-		}else if(this.playerOne == players[1] && (this.xTokenSelected ) + Math.abs(3 - this.yTokenSelected) <= this.selectedAvatar.RANGE){
-			if(x == -1 && y == 3) players[0].health -= ((cards.Avatar) attacker).DAMAGE;
-		} else{
+			if(x == 10 && y == 3 && playerOne.removeManaAndGetValid(((cards.Avatar) attacker).MANA_ATTACK_COST)) players[1].health -= ((cards.Avatar) attacker).DAMAGE;
+		}else if(this.playerOne == players[1] && (this.xTokenSelected ) + Math.abs(3 - this.yTokenSelected) <= this.selectedAvatar.RANGE ){
+			if(x == -1 && y == 3 && playerOne.removeManaAndGetValid(((cards.Avatar) attacker).MANA_ATTACK_COST)) players[0].health -= ((cards.Avatar) attacker).DAMAGE;
+		} else {
 			if (this.board.getBoard()[x][y] instanceof cards.Avatar && playerOne.removeManaAndGetValid(((cards.Avatar) attacker).MANA_ATTACK_COST)){
 				cards.Avatar attacked = (cards.Avatar) this.board.getBoard()[x][y];//get the attacked avatar
 				attacked.health -= ((cards.Avatar) attacker).DAMAGE;
@@ -315,6 +315,19 @@ public class Game extends GraphicsHandler {
 			}
 		}
 		this.tokenSelected = false;//yes this is reduntant
+	}
+
+	/**
+	 * Ends the game.
+	 *
+	 * @param winner An integer that represents the winner of the game.
+	 */
+	protected void handleEndGame(int winner){
+		turnIndex = 42;
+		PFont font = createFont("Dialog.plain", width/8);
+		textFont(font);
+		textAlign(CENTER, CENTER);
+		text(winner == 1 ? "You da best": "You suck at \nthis game", width/2, height/2);//useful feedback
 	}
 
 	/**
@@ -495,11 +508,16 @@ public class Game extends GraphicsHandler {
 	 */
 	private void drawAvatarAttack(){
 		fill(0x88FF0000);
+		PFont font = createFont("Dialog.plain", cardWidth/8);
+		textFont(font);
+		textAlign(CENTER, CENTER);
 		for (int i = -selectedAvatar.RANGE; i <= selectedAvatar.RANGE; i++ ) {
 			if(0 <= this.xTokenSelected + i && this.xTokenSelected + i < 10)for (int j = -selectedAvatar.RANGE + Math.abs(i) ; j <= selectedAvatar.RANGE - Math.abs(i); j++ ) {
 				if(0 <= this.yTokenSelected + j && this.yTokenSelected + j < 7 && !(i == 0 && j == 0) && board.getBoard()[this.xTokenSelected + i][this.yTokenSelected + j] != null){
 					translate(boardXOffset, boardYOffset);
 					ellipse((this.xTokenSelected + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight  + tileHeight/2, tileWidth/2, tileHeight/2);//should this be drawn?
+					fill(0xFF001399);
+					text(selectedAvatar.MANA_ATTACK_COST, (this.xTokenSelected + i) * tileWidth + tileWidth/2, (this.yTokenSelected + j) * tileHeight + tileHeight/2);
 					translate(-boardXOffset, -boardYOffset);
 				}
 			}
@@ -657,6 +675,8 @@ public class Game extends GraphicsHandler {
 		if (tokenSelected) {
 			drawAvatarMove();
 			drawAvatarAttack();
-		}	
+		}
+		if (playerOne.health <= 0) handleEndGame(0);
+		if (playerTwo.health <= 0) handleEndGame(1);//haHaa you one the game
 	}
 }
